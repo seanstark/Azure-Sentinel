@@ -9,7 +9,7 @@
             "id": "CloudflareDefinition",
             "title": "Cloudflare (Using Blob Container) (via Codeless Connector Framework)",
             "publisher": "Microsoft",
-            "descriptionMarkdown": " The Cloudflare data connector provides the capability to ingest Cloudflare logs into Microsoft Sentinel using the Cloudflare Logpush and Azure Blob Storage. Refer to [Cloudflare documentation](https://developers.cloudflare.com/logs/about/)for more information.\n\n<p><span style='color:red; font-weight:bold;'>NOTE</span>: The Cloudflare (Using Blob Container) (via Codeless Connector Framework) data connector available in the solution requires the Azure Blob Storage account and the Microsoft Sentinel workspace to be in the <span style='font-weight:bold;'>same Azure subscription and the same Resource Group</span>. Deploying across different subscriptions or resource groups may result in errors such as <span style='font-weight:bold;'>CreateDataFlowResources not defined</span> during connector configuration.</p>",
+            "descriptionMarkdown": "The Cloudflare data connector provides the capability to ingest Cloudflare logs into Microsoft Sentinel using the Cloudflare Logpush and Azure Blob Storage. Refer to [Cloudflare documentation](https://developers.cloudflare.com/logs/about/) for more information",
             "graphQueriesTableName": "CloudflareV2_CL",
             "graphQueries": [
                 {
@@ -89,12 +89,12 @@
                                         "columnValue": "name"
                                     },
                                     {
-                                        "columnValue": "properties.request.QueueUri",
+                                        "columnValue": "properties.request.queueUri",
                                         "columnName": "Queue URL"
                                     },
                                     {
-                                        "columnValue": "properties.request.DlqUri",
-                                        "columnName": "DLQ URL"
+                                        "columnValue": "properties.isActive",
+                                        "columnName": "Active"
                                     }
                                 ],
                                 "menuItems": [
@@ -182,7 +182,7 @@
                                             {
                                                 "type": "Textbox",
                                                 "parameters": {
-                                                    "label": "Existing Event Grid system topic name",
+                                                    "label": "The event grid topic name of the blob container's storage account if exist. else keep empty.",
                                                     "description": "Azure Event Grid allows only one system topic per storage account. If a previous Cloudflare collector already created a system topic for this storage account, paste its name here (e.g. 'sentinel-cloudflare-<storage-account-name>') so this deployment reuses it and only adds a new event subscription. To find it, open the storage account in the Azure portal and go to 'Events'. Leave this empty only when deploying the first collector against this storage account.",
                                                     "type": "text",
                                                     "name": "EGSystemTopicName",

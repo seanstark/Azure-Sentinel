@@ -295,12 +295,12 @@
                                 "columnValue": "name"
                               },
                               {
-                                "columnValue": "properties.request.QueueUri",
+                                "columnValue": "properties.request.queueUri",
                                 "columnName": "Queue URL"
                               },
                               {
-                                "columnValue": "properties.request.DlqUri",
-                                "columnName": "DLQ URL"
+                                "columnValue": "properties.isActive",
+                                "columnName": "Active"
                               }
                             ],
                             "menuItems": [
@@ -2544,12 +2544,12 @@
                         "columnValue": "name"
                       },
                       {
-                        "columnValue": "properties.request.QueueUri",
+                        "columnValue": "properties.request.queueUri",
                         "columnName": "Queue URL"
                       },
                       {
-                        "columnValue": "properties.request.DlqUri",
-                        "columnName": "DLQ URL"
+                        "columnValue": "properties.isActive",
+                        "columnName": "Active"
                       }
                     ],
                     "menuItems": [
