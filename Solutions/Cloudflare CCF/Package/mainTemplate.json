@@ -2786,6 +2786,13 @@
             "EGSystemTopicName": {
               "defaultValue": "",
               "type": "securestring"
+            },
+            "forceUpdateTag": {
+              "type": "string",
+              "defaultValue": "[[utcNow()]",
+              "metadata": {
+                "description": "Auto-generated per deployment so the RBAC-wait deploymentScript re-executes each time 'Add new collector' is run. Do not set manually."
+              }
             }
           },
           "variables": {
@@ -2795,8 +2802,8 @@
             "blobContainerName": "[[toLower(parameters('ContainerName'))]",
             "uniqueSuffix": "[[substring(uniqueString(parameters('CloudflareAccountName'), parameters('StorageAccountName'), parameters('ContainerName'), parameters('innerWorkspace'), parameters('guidValue')), 0, 6)]",
             "connectorName": "[[concat(variables('cloudflareAccount'), '-', variables('uniqueSuffix'))]",
-            "dcrName": "[[concat(variables('cloudflareAccount'), '-sentinel-', variables('uniqueSuffix'))]",
-            "dceName": "[[concat(variables('cloudflareAccount'), '-sentinel-', variables('uniqueSuffix'))]",
+            "dcrName": "[[concat(variables('cloudflareAccount'), '-cloudflare-sentinel-', variables('uniqueSuffix'))]",
+            "dceName": "[[concat(variables('cloudflareAccount'), '-cloudflare-sentinel-', variables('uniqueSuffix'))]",
             "queueName": "[[concat(variables('cloudflareAccount'), '-sentinel-notification')]",
             "dlqName": "[[concat(variables('cloudflareAccount'), '-sentinel-dlq')]",
             "EGSystemTopicDefaultName": "[[concat('sentinel-cloudflare-', variables('storageAccountName'))]",
@@ -2813,7 +2820,9 @@
             "dceResourceId": "[[resourceId('Microsoft.Insights/dataCollectionEndpoints', variables('dceName'))]",
             "dcrResourceId": "[[resourceId('Microsoft.Insights/dataCollectionRules', variables('dcrName'))]",
             "storageNestedDeploymentName": "[[concat('cloudflare-storage-', variables('cloudflareAccount'), '-', variables('uniqueSuffix'))]",
-            "storageNestedDeploymentId": "[[resourceId(parameters('StorageAccountResourceGroupName'), 'Microsoft.Resources/deployments', variables('storageNestedDeploymentName'))]"
+            "storageNestedDeploymentId": "[[resourceId(parameters('StorageAccountResourceGroupName'), 'Microsoft.Resources/deployments', variables('storageNestedDeploymentName'))]",
+            "rbacWaitScriptName": "[[concat('cloudflare-rbacwait-', variables('cloudflareAccount'), '-', variables('uniqueSuffix'))]",
+            "rbacWaitScriptId":   "[[resourceId('Microsoft.Resources/deploymentScripts', variables('rbacWaitScriptName'))]"
           },
           "resources": [
             {
@@ -4967,6 +4976,22 @@
               "resourceGroup": "[[parameters('StorageAccountResourceGroupName')]"
             },
             {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2023-08-01",
+              "name": "[[variables('rbacWaitScriptName')]",
+              "location": "[parameters('workspace-location')]",
+              "kind": "AzurePowerShell",
+              "dependsOn": [ "[[variables('storageNestedDeploymentId')]" ],
+              "properties": {
+                "azPowerShellVersion": "11.5",
+                "forceUpdateTag": "[[parameters('forceUpdateTag')]",
+                "retentionInterval": "PT1H",
+                "cleanupPreference": "Always",
+                "timeout": "PT5M",
+                "scriptContent": "Start-Sleep -Seconds 60"
+              }
+            },
+            {
               "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', variables('connectorName'))]",
               "apiVersion": "2023-02-01-preview",
               "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
@@ -4996,6 +5021,7 @@
                 }
               },
               "dependsOn": [
+                "[[resourceId('Microsoft.Resources/deploymentScripts', variables('rbacWaitScriptName'))]",
                 "[[variables('dcrResourceId')]",
                 "[[variables('dceResourceId')]",
                 "[[variables('storageNestedDeploymentId')]"
