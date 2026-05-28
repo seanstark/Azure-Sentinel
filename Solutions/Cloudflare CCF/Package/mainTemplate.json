@@ -272,6 +272,10 @@
                       {
                         "name": "Cloudflare permissions",
                         "description": "Ensure Log Share permissions are enabled, before attempting to read or configure a Logpush job. For more information refer to the [Roles](https://developers.cloudflare.com/logs/logpush/permissions/#roles) section."
+                      },
+                      {
+                        "name": "Role assignment propagation",
+                        "description": "Newly granted Azure role assignments (Storage Blob Data Reader, Storage Queue Data Contributor) can take up to 5 minutes to propagate. If the initial connection check fails with `BLB40011` (\"Access to the queue was denied\"), wait ~5 minutes and click **Connect** again."
                       }
                     ]
                   },
@@ -2527,6 +2531,10 @@
               {
                   "name": "Cloudflare permissions",
                   "description": "Ensure Log Share permissions are enabled, before attempting to read or configure a Logpush job. For more information refer to the [Roles](https://developers.cloudflare.com/logs/logpush/permissions/#roles) section."
+              },
+              {
+                  "name": "Role assignment propagation",
+                  "description": "Newly granted Azure role assignments (Storage Blob Data Reader, Storage Queue Data Contributor) can take up to 5 minutes to propagate. If the initial connection check fails with `BLB40011` (\"Access to the queue was denied\"), wait ~5 minutes and click **Connect** again."
               }
             ]
           },
