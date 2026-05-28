@@ -7,7 +7,7 @@
     "properties": {
         "connectorUiConfig": {
             "id": "CloudflareDefinition",
-            "title": "Cloudflare (Using Blob Container) (via Codeless Connector Framework)",
+            "title": "Cloudflare CCF via Blob Storage",
             "publisher": "Microsoft",
             "descriptionMarkdown": "The Cloudflare data connector provides the capability to ingest Cloudflare logs into Microsoft Sentinel using the Cloudflare Logpush and Azure Blob Storage. Refer to [Cloudflare documentation](https://developers.cloudflare.com/logs/about/) for more information",
             "graphQueriesTableName": "CloudflareV2_CL",
@@ -56,30 +56,36 @@
                 ],
                 "customs": [
                     {
-                        "name": "Create a storage account and a container",
-                        "description": "Before setting up logpush in Cloudflare, first create a storage account and a container in Microsoft Azure. Use [this guide](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction) to know more about Container and Blob. Follow the steps in the [documentation](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal) to create an Azure Storage account."
+                        "name": "Storage Account Resource Group permissions",
+                        "description": "The identity running the deployment needs the following Azure roles on the Storage Account resource group: **Owner**, or a combination **Contributor** + **User Access Administrator**"
                     },
                     {
-                        "name": "Generate a Blob SAS URL",
-                        "description": "Create and Write permissions are required. Refer the [documentation](https://learn.microsoft.com/en-us/azure/ai-services/translator/document-translation/how-to-guides/create-sas-tokens?tabs=Containers) to know more about Blob SAS token and url."
+                        "name": "Storage Account permissions",
+                        "description": "The identity running the deployment needs the following Azure roles on the Storage Account: **Storage Blob Data Reader** role and **Storage Queue Data Contributor**"
                     },
                     {
-                        "name": "Collecting logs from Cloudflare to your Blob container",
-                        "description": "Follow the steps in the [documentation](https://developers.cloudflare.com/logs/get-started/enable-destinations/azure/) for collecting logs from Cloudflare to your Blob container."
+                        "name": "Cloudflare permissions",
+                        "description": "Ensure Log Share permissions are enabled, before attempting to read or configure a Logpush job. For more information refer to the [Roles](https://developers.cloudflare.com/logs/logpush/permissions/#roles) section."
                     }
                 ]
             },
             "instructionSteps": [
                 {
-                    "title": "Connect Cloudflare accounts to Microsoft Sentinel",
-                    "description": "Each Cloudflare account is ingested through its own data collection rule, data collection endpoint, Sentinel data connector and storage queues. Use the grid below to view existing collectors and click **Add new collector** to add another Cloudflare account.",
+                    "title": "1. Create a storage account and a blob container",
+                    "description": "Before setting up logpush in Cloudflare, first create a storage account and a blob container in  Azure. Follow the steps in the [documentation](https://learn.microsoft.com/azure/storage/common/storage-account-create?tabs=azure-portal) to create an Azure Storage account."
+                },
+                {
+                    "title": "2. Generate a Blob SAS URL",
+                    "description": "Before setting up logpush in Cloudflare, generate a Blob SAS URL for your storage account container. Follow the steps in the [documentation](https://learn.microsoft.com/azure/ai-services/document-intelligence/authentication/create-sas-tokens?view=doc-intel-4.0.0&tabs=azure-portal#generating-sas-tokens) to create a Blob SAS URL with **Write** and **List** permissions for the blob container you created in the previous step."
+                },
+                {
+                    "title": "3. Collecting logs from Cloudflare to your Blob container",
+                    "description": "Follow the steps in the [documentation](https://developers.cloudflare.com/logs/get-started/enable-destinations/azure/) for collecting logs from Cloudflare to your Blob container."
+                },
+                {
+                    "title": "4. Connect Cloudflare Logs to Microsoft Sentinel",
+                    "description": "To enable Cloudflare logs for Microsoft Sentinel, click **Add new collector**, fill in the required fields (including granting the Microsoft Sentinel service principal **Storage Blob Data Reader** on the target storage account), and click **Connect**.",
                     "instructions": [
-                        {
-                            "type": "Markdown",
-                            "parameters": {
-                                "content": "#### 1. Configure Cloudflare Logpush to write to an Azure Blob container\nBefore adding a collector here, follow the [Cloudflare documentation](https://developers.cloudflare.com/logs/get-started/enable-destinations/azure/) to push logs from each Cloudflare account into its own Azure storage account / blob container.\n\n#### 2. Add a new collector for each Cloudflare account\nClick **Add new collector**, fill in the required information in the context pane, and click **Connect**. Repeat once per Cloudflare account."
-                            }
-                        },
                         {
                             "type": "DataConnectorsGrid",
                             "parameters": {
