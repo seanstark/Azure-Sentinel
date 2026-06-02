@@ -9,7 +9,7 @@
             "id": "CloudflareDefinition",
             "title": "Cloudflare CCF via Blob Storage",
             "publisher": "Microsoft",
-            "descriptionMarkdown": "The Cloudflare data connector provides the capability to ingest Cloudflare logs into Microsoft Sentinel using the Cloudflare Logpush and Azure Blob Storage. Refer to [Cloudflare documentation](https://developers.cloudflare.com/logs/about/) for more information",
+            "descriptionMarkdown": " The Cloudflare data connector provides the capability to ingest Cloudflare logs into Microsoft Sentinel using the Cloudflare Logpush and Azure Blob Storage. Refer to [Cloudflare documentation](https://developers.cloudflare.com/logs/about/) for more information.",
             "graphQueriesTableName": "CloudflareV2_CL",
             "graphQueries": [
                 {
@@ -196,6 +196,19 @@
                                                     "description": "Azure Event Grid allows only one system topic per storage account. If a previous Cloudflare collector already created a system topic for this storage account, paste its name here (e.g. 'sentinel-cloudflare-<storage-account-name>') so this deployment reuses it and only adds a new event subscription. To find it, open the storage account in the Azure portal and go to 'Events'. Leave this empty only when deploying the first collector against this storage account.",
                                                     "type": "text",
                                                     "name": "EGSystemTopicName",
+                                                    "validations": {
+                                                        "required": false
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "Custom table name (optional)",
+                                                    "description": "The custom table this collector writes to. Must end with '_CL'. Leave as the default 'CloudflareV2_CL' to use the built-in table that the solution's parsers, workbooks, hunting queries and analytics rules query. Enter a different name only to isolate this collector's data in its own table; that custom table is created automatically but is NOT consumed by the solution's content.",
+                                                    "type": "text",
+                                                    "name": "TableName",
+                                                    "defaultValue": "CloudflareV2_CL",
                                                     "validations": {
                                                         "required": false
                                                     }
