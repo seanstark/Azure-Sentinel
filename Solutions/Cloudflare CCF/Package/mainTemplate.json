@@ -5036,16 +5036,16 @@
                       {
                         "name": "SessionEndTime",
                         "type": "string"
-                      },
-                      {
+                    },
+                    {
                         "name": "SessionID",
                         "type": "string"
                       },
                       {
                         "name": "SessionStartTime",
                         "type": "string"
-                      },
-                      {
+                    },
+                    {
                         "name": "SourceIP",
                         "type": "string"
                       },
@@ -6608,8 +6608,8 @@
                       {
                         "name": "EdgeResponseCompressionRatio",
                         "type": "real"
-                      },
-                      {
+                    },
+                    {
                         "name": "EdgeResponseContentType",
                         "type": "string"
                       },
