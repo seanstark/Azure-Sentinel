@@ -3001,7 +3001,7 @@
                     },
                     {
                         "name": "SessionEndTime",
-                        "type": "datetime"
+                        "type": "string"
                     },
                     {
                         "name": "SessionID",
@@ -3009,7 +3009,7 @@
                     },
                     {
                         "name": "SessionStartTime",
-                        "type": "datetime"
+                        "type": "string"
                     },
                     {
                         "name": "SourceIP",
@@ -4573,7 +4573,7 @@
                     },
                     {
                         "name": "EdgeResponseCompressionRatio",
-                        "type": "string"
+                        "type": "real"
                     },
                     {
                         "name": "EdgeResponseContentType",
