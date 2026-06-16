@@ -305,8 +305,20 @@
                                 "columnValue": "name"
                               },
                               {
+                                "columnName": "Account Name",
+                                "columnValue": "properties.addOnAttributes.CloudflareAccountName"
+                              },
+                              {
                                 "columnValue": "properties.request.queueUri",
                                 "columnName": "Queue URL"
+                              },
+                              {
+                                "columnName": "Stream Name (table)",
+                                "columnValue": "properties.dcrConfig.streamName"
+                              },
+                              {
+                                "columnName": "DCR Id",
+                                "columnValue": "properties.dcrConfig.dataCollectionRuleImmutableId"
                               },
                               {
                                 "columnValue": "properties.isActive",
@@ -341,7 +353,7 @@
                                     "type": "Textbox",
                                     "parameters": {
                                       "label": "Cloudflare account name",
-                                      "description": "A short, lowercase identifier for this Cloudflare account (letters, digits and hyphens). Used as a prefix when naming the DCR, DCE, data connector and storage queues created for this account.",
+                                      "description": "The Cloudflare Account Name used to identify the Cloudflare Instance in the logs, DCR, DCE, data connector and storage queues",
                                       "type": "text",
                                       "name": "CloudflareAccountName",
                                       "validations": {
@@ -2581,8 +2593,20 @@
                         "columnValue": "name"
                       },
                       {
+                        "columnName": "Account Name",
+                        "columnValue": "properties.addOnAttributes.CloudflareAccountName"
+                      },
+                      {
                         "columnValue": "properties.request.queueUri",
                         "columnName": "Queue URL"
+                      },
+                      {
+                        "columnName": "Stream Name (table)",
+                        "columnValue": "properties.dcrConfig.streamName"
+                      },
+                      {
+                        "columnName": "DCR Id",
+                        "columnValue": "properties.dcrConfig.dataCollectionRuleImmutableId"
                       },
                       {
                         "columnValue": "properties.isActive",
@@ -2617,7 +2641,7 @@
                             "type": "Textbox",
                             "parameters": {
                               "label": "Cloudflare account name",
-                              "description": "A short, lowercase identifier for this Cloudflare account (letters, digits and hyphens). Used as a prefix when naming the DCR, DCE, data connector and storage queues created for this account.",
+                              "description": "The Cloudflare Account Name used to identify the Cloudflare Instance in the logs, DCR, DCE, data connector and storage queues",
                               "type": "text",
                               "name": "CloudflareAccountName",
                               "validations": {
@@ -4890,7 +4914,7 @@
               "name": "[[variables('dceName')]",
               "location": "[parameters('workspace-location')]",
               "dependsOn": [
-                  "[[resourceId('Microsoft.OperationalInsights/workspaces/tables', parameters('innerWorkspace'), variables('tableNameEffective'))]"
+                "[[resourceId('Microsoft.OperationalInsights/workspaces/tables', parameters('innerWorkspace'), variables('tableNameEffective'))]"
               ],
               "properties": {
                 "networkAcls": {
@@ -5043,16 +5067,16 @@
                       {
                         "name": "SessionEndTime",
                         "type": "string"
-                    },
-                    {
+                      },
+                      {
                         "name": "SessionID",
                         "type": "string"
                       },
                       {
                         "name": "SessionStartTime",
                         "type": "string"
-                    },
-                    {
+                      },
+                      {
                         "name": "SourceIP",
                         "type": "string"
                       },
@@ -6615,8 +6639,8 @@
                       {
                         "name": "EdgeResponseCompressionRatio",
                         "type": "real"
-                    },
-                    {
+                      },
+                      {
                         "name": "EdgeResponseContentType",
                         "type": "string"
                       },

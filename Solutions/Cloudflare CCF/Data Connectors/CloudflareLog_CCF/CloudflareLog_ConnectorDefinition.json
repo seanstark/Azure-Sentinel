@@ -99,8 +99,20 @@
                                         "columnValue": "name"
                                     },
                                     {
+                                        "columnName": "Account Name",
+                                        "columnValue": "properties.addOnAttributes.CloudflareAccountName"
+                                    },
+                                    {
                                         "columnValue": "properties.request.queueUri",
                                         "columnName": "Queue URL"
+                                    },
+                                    {
+                                        "columnName": "Stream Name (table)",
+                                        "columnValue": "properties.dcrConfig.streamName"
+                                    },
+                                    {
+                                        "columnName": "DCR Id",
+                                        "columnValue": "properties.dcrConfig.dataCollectionRuleImmutableId"
                                     },
                                     {
                                         "columnValue": "properties.isActive",

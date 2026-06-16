@@ -12,6 +12,10 @@
                     "type": "datetime"
                 },
                 {
+                    "name": "CloudflareAccountName",
+                    "type": "string"
+                },
+                {
                     "name": "AccountID",
                     "type": "string"
                 },
