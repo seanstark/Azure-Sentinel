@@ -276,6 +276,10 @@
                       {
                         "name": "Role assignment propagation",
                         "description": "Newly granted Azure role assignments (Storage Blob Data Reader, Storage Queue Data Contributor) can take up to 5 minutes to propagate. If the initial connection check fails with `BLB40011` (\"Access to the queue was denied\"), wait ~5 minutes and click **Connect** again."
+                      },
+                      {
+                        "name": "Blob lifecycle management (optional)",
+                        "description": "Set **Blob retention in days** above 0 (default 7) to add or update a lifecycle management rule that deletes blobs in the selected container older than the specified number of days. The rule is merged into the storage account's existing lifecycle policy (filtered to the selected container) without removing other rules. Set the value to 0 to skip. This requires the deployment identity to have **Storage Account Contributor** (or equivalent) on the storage account."
                       }
                     ]
                   },
@@ -427,6 +431,19 @@
                                       "type": "text",
                                       "name": "TableName",
                                       "defaultValue": "CloudflareV2_CL",
+                                      "validations": {
+                                        "required": false
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "Textbox",
+                                    "parameters": {
+                                      "label": "Blob retention in days (optional)",
+                                      "description": "Adds or updates a lifecycle management rule on the storage account to delete blobs in the container above that are older than this many days. Defaults to 7. Existing lifecycle rules on the storage account are preserved. Set to 0 to skip creating or updating any lifecycle rule.",
+                                      "type": "text",
+                                      "name": "BlobDeleteRetentionDays",
+                                      "defaultValue": "7",
                                       "validations": {
                                         "required": false
                                       }
@@ -2564,6 +2581,10 @@
               {
                 "name": "Role assignment propagation",
                 "description": "Newly granted Azure role assignments (Storage Blob Data Reader, Storage Queue Data Contributor) can take up to 5 minutes to propagate. If the initial connection check fails with `BLB40011` (\"Access to the queue was denied\"), wait ~5 minutes and click **Connect** again."
+              },
+              {
+                "name": "Blob lifecycle management (optional)",
+                "description": "Set **Blob retention in days** above 0 (default 7) to add or update a lifecycle management rule that deletes blobs in the selected container older than the specified number of days. The rule is merged into the storage account's existing lifecycle policy (filtered to the selected container) without removing other rules. Set the value to 0 to skip. This requires the deployment identity to have **Storage Account Contributor** (or equivalent) on the storage account."
               }
             ]
           },
@@ -2719,6 +2740,19 @@
                                 "required": false
                               }
                             }
+                          },
+                          {
+                            "type": "Textbox",
+                            "parameters": {
+                              "label": "Blob retention in days (optional)",
+                              "description": "Adds or updates a lifecycle management rule on the storage account to delete blobs in the container above that are older than this many days. Defaults to 7. Existing lifecycle rules on the storage account are preserved. Set to 0 to skip creating or updating any lifecycle rule.",
+                              "type": "text",
+                              "name": "BlobDeleteRetentionDays",
+                              "defaultValue": "7",
+                              "validations": {
+                                "required": false
+                              }
+                            }
                           }
                         ]
                       }
@@ -2845,6 +2879,13 @@
               "defaultValue": "CloudflareV2_CL",
               "type": "securestring"
             },
+            "BlobDeleteRetentionDays": {
+              "defaultValue": "7",
+              "type": "securestring",
+              "metadata": {
+                "description": "Number of days after which blobs in the container are deleted by a storage lifecycle management rule. Default 7. Set to 0 to skip creating/updating any lifecycle rule."
+              }
+            },
             "forceUpdateTag": {
               "type": "string",
               "defaultValue": "[[utcNow()]",
@@ -2881,6 +2922,7 @@
             "dcrResourceId": "[[resourceId('Microsoft.Insights/dataCollectionRules', variables('dcrName'))]",
             "storageNestedDeploymentName": "[[concat('cloudflare-storage-', variables('cloudflareAccount'), '-', variables('uniqueSuffix'))]",
             "storageNestedDeploymentId": "[[resourceId(parameters('StorageAccountResourceGroupName'), 'Microsoft.Resources/deployments', variables('storageNestedDeploymentName'))]",
+            "lifecycleDeploymentName": "[[concat('cloudflare-lifecycle-', variables('cloudflareAccount'), '-', variables('uniqueSuffix'))]",
             "rbacWaitScriptName": "[[concat('cloudflare-rbacwait-', variables('cloudflareAccount'), '-', variables('uniqueSuffix'))]",
             "rbacWaitScriptId": "[[resourceId('Microsoft.Resources/deploymentScripts', variables('rbacWaitScriptName'))]"
           },
@@ -7061,6 +7103,107 @@
               },
               "subscriptionId": "[[parameters('StorageAccountSubscription')]",
               "resourceGroup": "[[parameters('StorageAccountResourceGroupName')]"
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2021-04-01",
+              "name": "[[variables('lifecycleDeploymentName')]",
+              "condition": "[[greater(if(empty(parameters('BlobDeleteRetentionDays')), 0, int(parameters('BlobDeleteRetentionDays'))), 0)]",
+              "subscriptionId": "[[parameters('StorageAccountSubscription')]",
+              "resourceGroup": "[[parameters('StorageAccountResourceGroupName')]",
+              "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "parameters": {
+                  "storageAccountName": {
+                    "value": "[[variables('storageAccountName')]"
+                  },
+                  "containerName": {
+                    "value": "[[variables('blobContainerName')]"
+                  },
+                  "daysToDelete": {
+                    "value": "[[parameters('BlobDeleteRetentionDays')]"
+                  },
+                  "forceUpdateTag": {
+                    "value": "[[parameters('forceUpdateTag')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "parameters": {
+                    "storageAccountName": {
+                      "type": "string"
+                    },
+                    "containerName": {
+                      "type": "string"
+                    },
+                    "daysToDelete": {
+                      "type": "string"
+                    },
+                    "forceUpdateTag": {
+                      "type": "string"
+                    }
+                  },
+                  "variables": {
+                    "ruleName": "[[format('delete-old-blobs-{0}', parameters('containerName'))]",
+                    "identityName": "[[format('id-lifecycle-merge-{0}', parameters('storageAccountName'))]",
+                    "scriptName": "[[format('merge-lifecycle-{0}', parameters('storageAccountName'))]",
+                    "storageAccountContributorRoleId": "[[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '17d1049b-9a84-46fb-8f53-869881c3d3ab')]",
+                    "roleAssignmentName": "[[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), variables('identityName'), variables('storageAccountContributorRoleId'))]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+                      "apiVersion": "2023-01-31",
+                      "name": "[[variables('identityName')]",
+                      "location": "[[resourceGroup().location]"
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "name": "[[variables('roleAssignmentName')]",
+                      "scope": "[[format('Microsoft.Storage/storageAccounts/{0}', parameters('storageAccountName'))]",
+                      "dependsOn": [
+                        "[[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]"
+                      ],
+                      "properties": {
+                        "roleDefinitionId": "[[variables('storageAccountContributorRoleId')]",
+                        "principalId": "[[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), '2023-01-31').principalId]",
+                        "principalType": "ServicePrincipal"
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[[variables('scriptName')]",
+                      "location": "[[resourceGroup().location]",
+                      "kind": "AzurePowerShell",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]": {}
+                        }
+                      },
+                      "dependsOn": [
+                        "[[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]",
+                        "[[extensionResourceId(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), 'Microsoft.Authorization/roleAssignments', variables('roleAssignmentName'))]"
+                      ],
+                      "properties": {
+                        "forceUpdateTag": "[[parameters('forceUpdateTag')]",
+                        "azPowerShellVersion": "11.0",
+                        "timeout": "PT30M",
+                        "retentionInterval": "PT1H",
+                        "cleanupPreference": "OnSuccess",
+                        "arguments": "[[format('-StorageAccountName {0} -ResourceGroupName {1} -ContainerName {2} -Days {3} -RuleName {4}', parameters('storageAccountName'), resourceGroup().name, parameters('containerName'), parameters('daysToDelete'), variables('ruleName'))]",
+                        "scriptContent": "param([string]$StorageAccountName,[string]$ResourceGroupName,[string]$ContainerName,[int]$Days,[string]$RuleName)\n$ErrorActionPreference = 'Stop'\n$action = Add-AzStorageAccountManagementPolicyAction -BaseBlobAction Delete -DaysAfterModificationGreaterThan $Days\n$filter = New-AzStorageAccountManagementPolicyFilter -PrefixMatch $ContainerName -BlobType blockBlob\n$newRule = New-AzStorageAccountManagementPolicyRule -Name $RuleName -Action $action -Filter $filter\n$rules = @()\n$maxAttempts = 10\nfor ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {\n  try {\n    $rules = @()\n    try {\n      $existing = Get-AzStorageAccountManagementPolicy -ResourceGroupName $ResourceGroupName -StorageAccountName $StorageAccountName -ErrorAction Stop\n      if ($existing -and $existing.Rules) { $rules = @($existing.Rules | Where-Object { $_.Name -ne $RuleName }) }\n    } catch { Write-Host 'No existing management policy found or not yet readable.' }\n    $rules += $newRule\n    Set-AzStorageAccountManagementPolicy -ResourceGroupName $ResourceGroupName -StorageAccountName $StorageAccountName -Rule $rules | Out-Null\n    Write-Host \"Lifecycle rule '$RuleName' applied. Total rules: $($rules.Count)\"\n    break\n  } catch {\n    if ($attempt -eq $maxAttempts) { throw }\n    Write-Host \"Attempt $attempt failed: $($_.Exception.Message). Retrying in 30s (waiting for RBAC propagation)...\"\n    Start-Sleep -Seconds 30\n  }\n}\n$DeploymentScriptOutputs = @{}\n$DeploymentScriptOutputs['ruleCount'] = [string]$rules.Count\n$DeploymentScriptOutputs['rules'] = (($rules | ForEach-Object { $_.Name }) -join ',')"
+                      }
+                    }
+                  ]
+                }
+              }
             },
             {
               "type": "Microsoft.Resources/deploymentScripts",

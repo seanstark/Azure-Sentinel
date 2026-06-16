@@ -70,6 +70,10 @@
                     {
                         "name": "Role assignment propagation",
                         "description": "Newly granted Azure role assignments (Storage Blob Data Reader, Storage Queue Data Contributor) can take up to 5 minutes to propagate. If the initial connection check fails with `BLB40011` (\"Access to the queue was denied\"), wait ~5 minutes and click **Connect** again."
+                    },
+                    {
+                        "name": "Blob lifecycle management (optional)",
+                        "description": "Set **Blob retention in days** above 0 (default 7) to add or update a lifecycle management rule that deletes blobs in the selected container older than the specified number of days. The rule is merged into the storage account's existing lifecycle policy (filtered to the selected container) without removing other rules. Set the value to 0 to skip. This requires the deployment identity to have **Storage Account Contributor** (or equivalent) on the storage account."
                     }
                 ]
             },
@@ -147,7 +151,7 @@
                                                 "type": "Textbox",
                                                 "parameters": {
                                                     "label": "Cloudflare account name",
-                                                    "description": "A short, lowercase identifier for this Cloudflare account (letters, digits and hyphens). Used as a prefix when naming the DCR, DCE, data connector and storage queues created for this account.",
+                                                    "description": "The Cloudflare Account Name used to identify the Cloudflare Instance in the logs, DCR, DCE, data connector and storage queues",
                                                     "type": "text",
                                                     "name": "CloudflareAccountName",
                                                     "validations": {
@@ -221,6 +225,19 @@
                                                     "type": "text",
                                                     "name": "TableName",
                                                     "defaultValue": "CloudflareV2_CL",
+                                                    "validations": {
+                                                        "required": false
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "Blob retention in days (optional)",
+                                                    "description": "Adds or updates a lifecycle management rule on the storage account to delete blobs in the container above that are older than this many days. Defaults to 7. Existing lifecycle rules on the storage account are preserved. Set to 0 to skip creating or updating any lifecycle rule.",
+                                                    "type": "text",
+                                                    "name": "BlobDeleteRetentionDays",
+                                                    "defaultValue": "7",
                                                     "validations": {
                                                         "required": false
                                                     }
