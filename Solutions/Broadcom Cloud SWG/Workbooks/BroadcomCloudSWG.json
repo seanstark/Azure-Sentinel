@@ -1,0 +1,521 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "## Broadcom Cloud SWG\n---\n\nThis workbook provides visibility into Broadcom Cloud Secure Web Gateway (Cloud SWG) traffic ingested into Microsoft Sentinel via the OCSF Codeless Connector. Use the tabs below to explore an executive summary and detailed web-traffic analytics."
+      },
+      "name": "title"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "b1f0e0a0-0000-0000-0000-000000000002",
+            "version": "KqlParameterItem/1.0",
+            "name": "Workspace",
+            "label": "Workspace",
+            "type": 5,
+            "isRequired": true,
+            "multiSelect": false,
+            "query": "where type =~ 'microsoft.operationalinsights/workspaces'\n| project value = id, label = name, selected = false",
+            "crossComponentResources": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [],
+              "showDefault": false
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources",
+            "value": null
+          },
+          {
+            "id": "b1f0e0a0-0000-0000-0000-000000000001",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "label": "Time Range",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 604800000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 2592000000
+                }
+              ],
+              "allowCustom": true
+            }
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters"
+    },
+    {
+      "type": 11,
+      "content": {
+        "version": "LinkItem/1.0",
+        "style": "tabs",
+        "links": [
+          {
+            "id": "tab-0000-0000-0000-000000000000",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Executive Summary",
+            "subTarget": "executive",
+            "style": "link"
+          },
+          {
+            "id": "tab-0000-0000-0000-000000000001",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Traffic Overview",
+            "subTarget": "overview",
+            "style": "link"
+          }
+        ]
+      },
+      "name": "tabs"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "### Executive Summary\nHigh-level web-activity overview for the selected period. Use the Traffic Overview tab to drill into detailed analytics."
+      },
+      "name": "executive-title",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "executive"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| summarize TotalTransactions = count(), DistinctUsers = dcount(UserName), DistinctDestinations = dcount(UrlHostname), BlockedTransactions = countif(ActionResult matches regex \"(?i)block|deny|denied\"), WebIsolationSessions = countif(RequestOrigin =~ \"isolation\"), BandwidthGB = round(sum(TrafficBytes) / 1024.0 / 1024.0 / 1024.0, 2)\n| extend Tiles = pack(\"Total Transactions\", TotalTransactions, \"Distinct Users\", DistinctUsers, \"Distinct Destinations\", DistinctDestinations, \"Blocked Transactions\", BlockedTransactions, \"Web Isolation Sessions\", WebIsolationSessions, \"Bandwidth (GB)\", BandwidthGB)\n| mv-expand kv = Tiles\n| extend Metric = tostring(bag_keys(kv)[0])\n| project Metric, Value = todouble(kv[Metric])",
+        "size": 4,
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Metric",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "Value",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "blue"
+            }
+          },
+          "showBorder": true
+        }
+      },
+      "name": "executive-kpis",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "executive"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| summarize ['Total Transactions'] = count(), ['Blocked Transactions'] = countif(ActionResult matches regex \"(?i)block|deny|denied\") by bin(TimeGenerated, 1h)\n| order by TimeGenerated asc",
+        "size": 0,
+        "title": "Transactions vs blocked over time",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "timechart"
+      },
+      "customWidth": "50",
+      "name": "executive-trend",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "executive"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| where isnotempty(ActionResult) and ActionResult != \"-\"\n| summarize Events = count() by ActionResult\n| order by Events desc",
+        "size": 0,
+        "title": "Transactions by action result",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "piechart"
+      },
+      "customWidth": "50",
+      "name": "executive-actions",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "executive"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| where isnotempty(UserName) and UserName != \"-\"\n| summarize ['Transactions'] = count(), ['Distinct Destinations'] = dcount(UrlHostname), ['Bandwidth (MB)'] = round(sum(TrafficBytes) / 1024.0 / 1024.0, 2) by ['User'] = UserName\n| top 10 by ['Transactions'] desc",
+        "size": 0,
+        "title": "Top users by activity",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table"
+      },
+      "name": "executive-top-users",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "executive"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "### Traffic Overview"
+      },
+      "name": "overview-title",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| summarize TotalEvents = count(), DistinctUsers = dcount(UserName), DistinctClientIPs = dcount(SrcIp), DistinctDestinations = dcount(UrlHostname)\n| extend Tiles = pack(\"Total Events\", TotalEvents, \"Distinct Users\", DistinctUsers, \"Distinct Client IPs\", DistinctClientIPs, \"Distinct Destinations\", DistinctDestinations)\n| mv-expand kv = Tiles\n| extend Metric = tostring(bag_keys(kv)[0])\n| project Metric, Value = todouble(kv[Metric])",
+        "size": 4,
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Metric",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "Value",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "blue"
+            }
+          },
+          "showBorder": true
+        }
+      },
+      "name": "overview-tiles",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| summarize Events = count() by bin(TimeGenerated, 1h)\n| order by TimeGenerated asc",
+        "size": 0,
+        "title": "Traffic volume over time",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "timechart"
+      },
+      "customWidth": "50",
+      "name": "overview-timechart",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| where isnotempty(ActionResult) and ActionResult != \"-\"\n| summarize Events = count() by ActionResult\n| order by Events desc",
+        "size": 0,
+        "title": "Transactions by action",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "piechart"
+      },
+      "customWidth": "50",
+      "name": "overview-actions",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| where isnotempty(UserName) and UserName != \"-\"\n| summarize Events = count() by UserName\n| top 10 by Events desc",
+        "size": 0,
+        "title": "Top 10 users by transaction count",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "overview-top-users",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| where isnotempty(AppName) and AppName != \"-\"\n| summarize Events = count() by AppName\n| top 10 by Events desc",
+        "size": 0,
+        "title": "Top 10 web applications",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "overview-top-apps",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| summarize Events = count() by tostring(HttpStatusCode)\n| order by Events desc",
+        "size": 0,
+        "title": "HTTP status codes",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "overview-status",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| where isnotempty(SrcCountry) and SrcCountry != \"-\"\n| summarize Events = count() by SrcCountry\n| top 10 by Events desc",
+        "size": 0,
+        "title": "Top client countries",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "overview-countries",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| summarize ['Bandwidth (MB)'] = round(sum(TrafficBytes) / 1024.0 / 1024.0, 2) by bin(TimeGenerated, 1h)\n| order by TimeGenerated asc",
+        "size": 0,
+        "title": "Bandwidth consumption over time",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "timechart"
+      },
+      "customWidth": "50",
+      "name": "overview-bandwidth-time",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| where isnotempty(UserName) and UserName != \"-\"\n| summarize ['Bandwidth (MB)'] = round(sum(TrafficBytes) / 1024.0 / 1024.0, 2), Transactions = count() by ['User'] = UserName\n| top 10 by ['Bandwidth (MB)'] desc",
+        "size": 0,
+        "title": "Top 10 users by bandwidth",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "overview-bandwidth-users",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| summarize Events = count() by ['Authentication'] = iff(isempty(UserName) or UserName == \"-\", \"Unauthenticated (No User)\", \"Authenticated\")\n| order by Events desc",
+        "size": 0,
+        "title": "Authenticated vs unauthenticated traffic",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "piechart"
+      },
+      "customWidth": "50",
+      "name": "overview-auth",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| where isnotempty(LocationName) and LocationName != \"-\"\n| summarize Events = count(), Users = dcount(UserName) by ['Location'] = LocationName\n| top 10 by Events desc",
+        "size": 0,
+        "title": "Top access locations",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "overview-locations",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| where isnotempty(UrlCategories) and UrlCategories != \"-\"\n| summarize Events = count() by UrlCategories\n| top 15 by Events desc",
+        "size": 0,
+        "title": "Top URL categories",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "overview-categories",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "BroadcomCloudSWG_CL\n| where isnotempty(TlsVersion) and TlsVersion != \"-\"\n| summarize Events = count() by TlsVersion\n| order by Events desc",
+        "size": 0,
+        "title": "TLS versions",
+        "queryType": 0,
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "piechart"
+      },
+      "customWidth": "50",
+      "name": "overview-tls",
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "overview"
+      }
+    }
+  ],
+  "fallbackResourceIds": [],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

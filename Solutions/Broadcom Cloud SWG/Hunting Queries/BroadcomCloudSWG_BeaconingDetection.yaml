@@ -1,0 +1,43 @@
+id: 7c4b2e55-8d3f-4a1b-9d2f-4c9a8b321b10
+name: Broadcom Cloud SWG - Beaconing to single destination
+description: |
+  'Identifies potential command-and-control beaconing by surfacing client/destination pairs with a high, regular volume of transactions to a single host through Broadcom Cloud SWG. Consistent low-variance intervals to one destination are characteristic of automated beacons.'
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+tactics:
+  - CommandAndControl
+relevantTechniques:
+  - T1071
+  - T1571
+query: |
+  let lookback = 1d;
+  let minRequests = 50;
+  BroadcomCloudSWG_CL
+  | where TimeGenerated > ago(lookback)
+  | where isnotempty(UrlHostname) and UrlHostname != "-"
+  | sort by SrcIp asc, UrlHostname asc, TimeGenerated asc
+  | serialize
+  | extend PrevTime = prev(TimeGenerated), PrevKey = strcat(prev(SrcIp), "|", prev(UrlHostname)), CurKey = strcat(SrcIp, "|", UrlHostname)
+  | extend DeltaSeconds = iff(PrevKey == CurKey, datetime_diff('second', TimeGenerated, PrevTime), long(null))
+  | where isnotempty(DeltaSeconds)
+  | summarize RequestCount = count(), AvgIntervalSec = avg(DeltaSeconds), StdevIntervalSec = stdev(DeltaSeconds), UrlCategories = make_set(UrlCategories, 10), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by SrcIp, UserName, UrlHostname
+  | where RequestCount >= minRequests and AvgIntervalSec > 0 and StdevIntervalSec < (AvgIntervalSec * 0.25)
+  | order by RequestCount desc
+  
+entityMappings:
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SrcIp
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: UserName
+  - entityType: UrlString
+    fieldMappings:
+      - identifier: Url
+        columnName: UrlHostname
+version: 1.0.0
+

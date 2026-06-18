@@ -1,0 +1,44 @@
+id: 5b3a1d44-7c2e-4f9a-9c1e-3b8f7a210a05
+name: Broadcom Cloud SWG - Phishing attack detected
+description: |
+  Identifies transactions where Broadcom Cloud SWG categorized the URL as phishing. Phishing detections often precede credential theft.
+severity: High
+status: Available
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+  - InitialAccess
+  - CredentialAccess
+relevantTechniques:
+  - T1566
+  - T1056
+query: |
+  BroadcomCloudSWG_CL
+  | where UrlCategories has_any ("Phishing", "Suspected Phishing", "Phishing Education", "Social Engineering")
+  | extend AccountName = tostring(split(UserName, "\\\\")[-1]), AccountDomain = UserDomain
+  | extend Url = strcat(UrlScheme, "://", UrlHostname, UrlPath)
+  | project TimeGenerated, AccountName, AccountDomain, UserName, UserDomain, SrcIp, DeviceName, DstIp, UrlHostname, Url, UrlCategories, SeverityId, ActionResult, Verdict
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: AccountName
+      - identifier: UPNSuffix
+        columnName: AccountDomain
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SrcIp
+  - entityType: URL
+    fieldMappings:
+      - identifier: Url
+        columnName: Url
+version: 1.0.0
+kind: Scheduled
+

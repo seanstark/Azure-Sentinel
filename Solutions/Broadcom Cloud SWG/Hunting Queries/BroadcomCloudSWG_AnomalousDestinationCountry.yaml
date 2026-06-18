@@ -1,0 +1,36 @@
+id: 7c4b2e55-8d3f-4a1b-9d2f-4c9a8b321b06
+name: Broadcom Cloud SWG - Anomalous destination country per user
+description: |
+  'Identifies users connecting to destination countries that are rare for them relative to their own history through Broadcom Cloud SWG. Geographic anomalies can indicate compromised credentials, command-and-control, or unusual data movement.'
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+tactics:
+  - CommandAndControl
+  - Exfiltration
+relevantTechniques:
+  - T1071
+query: |
+  let lookback = 14d;
+  let perUserCountry =
+      BroadcomCloudSWG_CL
+      | where TimeGenerated > ago(lookback)
+      | where isnotempty(DstCountry) and DstCountry != "-"
+      | summarize CountryCount = count() by UserName, DstCountry;
+  let userTotals =
+      perUserCountry
+      | summarize TotalForUser = sum(CountryCount), DistinctCountries = dcount(DstCountry) by UserName;
+  perUserCountry
+  | join kind=inner userTotals on UserName
+  | extend CountryShare = round(todouble(CountryCount) / TotalForUser, 4)
+  | where CountryCount <= 3 and CountryShare < 0.05 and DistinctCountries > 1
+  | order by CountryShare asc
+  
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: UserName
+version: 1.0.0
+

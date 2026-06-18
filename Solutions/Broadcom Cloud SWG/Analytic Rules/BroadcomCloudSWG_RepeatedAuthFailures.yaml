@@ -1,0 +1,40 @@
+id: 5b3a1d44-7c2e-4f9a-9c1e-3b8f7a210a08
+name: Broadcom Cloud SWG - Repeated authentication failures by user
+description: |
+  Identifies users with repeated authentication failures through Broadcom Cloud SWG. StatusDetail or Verdict values of 'authentication_failed' indicate proxy authentication rejections.
+severity: Medium
+status: Available
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+  - CredentialAccess
+relevantTechniques:
+  - T1110
+query: |
+  let threshold = 10;
+  BroadcomCloudSWG_CL
+  | where StatusDetail =~ "authentication_failed" or Verdict =~ "authentication_failed"
+  | extend AccountName = tostring(split(UserName, "\\\\")[-1]), AccountDomain = UserDomain
+  | summarize FailureCount = count(), DistinctClientIPs = dcount(SrcIp), ClientIPs = make_set(SrcIp, 50), StartTime = min(TimeGenerated), EndTime = max(TimeGenerated) by UserName, AccountName, AccountDomain
+  | where FailureCount >= threshold
+  | extend SrcIp = tostring(ClientIPs[0])
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: AccountName
+      - identifier: UPNSuffix
+        columnName: AccountDomain
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SrcIp
+version: 1.0.0
+kind: Scheduled
+

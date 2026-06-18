@@ -1,0 +1,44 @@
+{
+  "Name": "Broadcom Cloud SWG",
+  "Author": "Broadcom - support@broadcom.com",
+  "Logo": "<img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/Azure_Sentinel.svg\" width=\"75px\" height=\"75px\">",
+  "Description": "The [Broadcom Cloud SWG](https://techdocs.broadcom.com/us/en/symantec-security-software/web-and-network-security/cloud-swg/help.html) solution provides the capability to ingest [Broadcom Cloud SWG logs](https://techdocs.broadcom.com/us/en/symantec-security-software/web-and-network-security/cloud-swg/help/wss-reference/accesslogformats-ref.html) into Microsoft Sentinel using the Codeless Connector Framework (CCF) and Azure Blob Storage. Refer to [Broadcom documentation](https://techdocs.broadcom.com/us/en/symantec-security-software/web-and-network-security/cloud-swg/help/wss-reference/accesslogformats-ref.html) for more information.\n\n**Underlying Microsoft Technologies used:**\r\n\n  a. [Codeless Connector Framework](https://learn.microsoft.com/en-us/azure/sentinel/create-codeless-connector)\n\n",
+  "Data Connectors": [
+    "Broadcom Cloud SWG/Data Connectors/BroadcomCloudSWG_ConnectorDefinition.json"
+  ],
+  "Parsers": [
+  ],
+  "Workbooks": [
+    "Broadcom Cloud SWG/Workbooks/BroadcomCloudSWG.json"
+  ],
+  "Hunting Queries": [
+    "Broadcom Cloud SWG/Hunting Queries/BroadcomCloudSWG_RareUserAgents.yaml",
+    "Broadcom Cloud SWG/Hunting Queries/BroadcomCloudSWG_TopDataUploaders.yaml",
+    "Broadcom Cloud SWG/Hunting Queries/BroadcomCloudSWG_HighRiskDNSRequests.yaml",
+    "Broadcom Cloud SWG/Hunting Queries/BroadcomCloudSWG_UninspectedHTTPS.yaml",
+    "Broadcom Cloud SWG/Hunting Queries/BroadcomCloudSWG_SuspiciousDownloads.yaml",
+    "Broadcom Cloud SWG/Hunting Queries/BroadcomCloudSWG_AnomalousDestinationCountry.yaml",
+    "Broadcom Cloud SWG/Hunting Queries/BroadcomCloudSWG_RareWebApplications.yaml",
+    "Broadcom Cloud SWG/Hunting Queries/BroadcomCloudSWG_PolicyExceptions.yaml",
+    "Broadcom Cloud SWG/Hunting Queries/BroadcomCloudSWG_WeakTLSUsage.yaml",
+    "Broadcom Cloud SWG/Hunting Queries/BroadcomCloudSWG_BeaconingDetection.yaml"
+  ],
+  "Analytic Rules": [
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_MalwareSandboxVerdict.yaml",
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_VirusDetected.yaml",
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_DLPViolationBlocked.yaml",
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_HighThreatRiskAllowed.yaml",
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_PhishingDetected.yaml",
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_DriveByDownloadBlocked.yaml",
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_MaliciousCategoryAccess.yaml",
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_RepeatedAuthFailures.yaml",
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_LargeDataUpload.yaml",
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_InvalidServerCertificate.yaml",
+    "Broadcom Cloud SWG/Analytic Rules/BroadcomCloudSWG_HighVolumeDeniedRequests.yaml"
+  ],
+  "Metadata": "SolutionMetadata.json",
+  "BasePath": "C:\\GitHub\\Azure-Sentinel\\Solutions\\Broadcom Cloud SWG",
+  "Version": "1.0.0",
+  "TemplateSpec": true,
+  "Is1PConnector": false
+}

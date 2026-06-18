@@ -1,0 +1,42 @@
+id: 5b3a1d44-7c2e-4f9a-9c1e-3b8f7a210a07
+name: Broadcom Cloud SWG - Access to malicious or suspicious category
+description: |
+  Identifies web transactions categorized by Broadcom Cloud SWG as Malicious Sources/Malnets or Suspicious. Access to these categories is a strong indicator of malware command-and-control or compromised destinations.
+severity: Medium
+status: Available
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+  - CommandAndControl
+relevantTechniques:
+  - T1071
+query: |
+  BroadcomCloudSWG_CL
+  | where UrlCategories has_any ("Malicious", "Malnet", "Suspicious", "Spyware", "Phishing")
+  | extend AccountName = tostring(split(UserName, "\\\\")[-1]), AccountDomain = UserDomain
+  | extend Url = strcat(UrlScheme, "://", UrlHostname, UrlPath)
+  | project TimeGenerated, AccountName, AccountDomain, UserName, UserDomain, SrcIp, DeviceName, DstIp, UrlHostname, Url, UrlCategories, SeverityId, ActionResult, Verdict, AppName
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: AccountName
+      - identifier: UPNSuffix
+        columnName: AccountDomain
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SrcIp
+  - entityType: URL
+    fieldMappings:
+      - identifier: Url
+        columnName: Url
+version: 1.0.0
+kind: Scheduled
+

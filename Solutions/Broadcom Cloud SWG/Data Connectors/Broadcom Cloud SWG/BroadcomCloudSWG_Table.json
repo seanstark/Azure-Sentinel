@@ -1,0 +1,297 @@
+{
+  "name": "BroadcomCloudSWG_CL",
+  "apiVersion": "2021-03-01-privatepreview",
+  "type": "Microsoft.OperationalInsights/workspaces/tables",
+  "location": "{{location}}",
+  "properties": {
+    "schema": {
+      "name": "BroadcomCloudSWG_CL",
+      "columns": [
+        {
+          "name": "TimeGenerated",
+          "type": "datetime"
+        },
+        {
+          "name": "BroadcomSWGAccountName",
+          "type": "string"
+        },
+        {
+          "name": "ActivityId",
+          "type": "int"
+        },
+        {
+          "name": "ActivityName",
+          "type": "string"
+        },
+        {
+          "name": "ApiOperation",
+          "type": "string"
+        },
+        {
+          "name": "AppName",
+          "type": "string"
+        },
+        {
+          "name": "CategoryName",
+          "type": "string"
+        },
+        {
+          "name": "CategoryUid",
+          "type": "int"
+        },
+        {
+          "name": "ClassName",
+          "type": "string"
+        },
+        {
+          "name": "ClassUid",
+          "type": "int"
+        },
+        {
+          "name": "CloudProvider",
+          "type": "string"
+        },
+        {
+          "name": "ConnectionDirectionId",
+          "type": "int"
+        },
+        {
+          "name": "ConnectionUid",
+          "type": "string"
+        },
+        {
+          "name": "DeviceIp",
+          "type": "string"
+        },
+        {
+          "name": "DeviceName",
+          "type": "string"
+        },
+        {
+          "name": "DeviceTypeId",
+          "type": "int"
+        },
+        {
+          "name": "DeviceUid",
+          "type": "string"
+        },
+        {
+          "name": "DeviceOsName",
+          "type": "string"
+        },
+        {
+          "name": "DstIp",
+          "type": "string"
+        },
+        {
+          "name": "DstCountry",
+          "type": "string"
+        },
+        {
+          "name": "Duration",
+          "type": "int"
+        },
+        {
+          "name": "ProxyHostname",
+          "type": "string"
+        },
+        {
+          "name": "ProxyIp",
+          "type": "string"
+        },
+        {
+          "name": "HttpStatusCode",
+          "type": "int"
+        },
+        {
+          "name": "HttpContentType",
+          "type": "string"
+        },
+        {
+          "name": "Severity",
+          "type": "string"
+        },
+        {
+          "name": "SeverityId",
+          "type": "int"
+        },
+        {
+          "name": "SrcIp",
+          "type": "string"
+        },
+        {
+          "name": "SrcCountry",
+          "type": "string"
+        },
+        {
+          "name": "StatusDetail",
+          "type": "string"
+        },
+        {
+          "name": "EventTime",
+          "type": "long"
+        },
+        {
+          "name": "TlsCipher",
+          "type": "string"
+        },
+        {
+          "name": "TlsVersion",
+          "type": "string"
+        },
+        {
+          "name": "TrafficBytes",
+          "type": "long"
+        },
+        {
+          "name": "TrafficBytesIn",
+          "type": "long"
+        },
+        {
+          "name": "TrafficBytesOut",
+          "type": "long"
+        },
+        {
+          "name": "TypeName",
+          "type": "string"
+        },
+        {
+          "name": "TypeUid",
+          "type": "int"
+        },
+        {
+          "name": "UserDomain",
+          "type": "string"
+        },
+        {
+          "name": "UserName",
+          "type": "string"
+        },
+        {
+          "name": "UrlCategories",
+          "type": "string"
+        },
+        {
+          "name": "UrlHostname",
+          "type": "string"
+        },
+        {
+          "name": "UrlPath",
+          "type": "string"
+        },
+        {
+          "name": "UrlPort",
+          "type": "int"
+        },
+        {
+          "name": "UrlScheme",
+          "type": "string"
+        },
+        {
+          "name": "UrlString",
+          "type": "string"
+        },
+        {
+          "name": "ActionResult",
+          "type": "string"
+        },
+        {
+          "name": "ClientPublicIp",
+          "type": "string"
+        },
+        {
+          "name": "LocationName",
+          "type": "string"
+        },
+        {
+          "name": "MessageCode",
+          "type": "string"
+        },
+        {
+          "name": "OcsfVersion",
+          "type": "string"
+        },
+        {
+          "name": "ProtocolVersion",
+          "type": "string"
+        },
+        {
+          "name": "ProxyTlsCertificateSubject",
+          "type": "string"
+        },
+        {
+          "name": "ProxyTlsCipher",
+          "type": "string"
+        },
+        {
+          "name": "ProxyTlsCipherSize",
+          "type": "int"
+        },
+        {
+          "name": "ProxyTlsServerCertSignatureErrors",
+          "type": "string"
+        },
+        {
+          "name": "ProxyTlsVersion",
+          "type": "string"
+        },
+        {
+          "name": "ProxyInternalIp",
+          "type": "string"
+        },
+        {
+          "name": "UploadSource",
+          "type": "string"
+        },
+        {
+          "name": "AccessType",
+          "type": "string"
+        },
+        {
+          "name": "HttpConnectHost",
+          "type": "string"
+        },
+        {
+          "name": "HttpConnectPort",
+          "type": "int"
+        },
+        {
+          "name": "TenantId",
+          "type": "string"
+        },
+        {
+          "name": "VPopCode",
+          "type": "string"
+        },
+        {
+          "name": "VPopCountry",
+          "type": "string"
+        },
+        {
+          "name": "VPopIp",
+          "type": "string"
+        },
+        {
+          "name": "Inspected",
+          "type": "string"
+        },
+        {
+          "name": "Verdict",
+          "type": "string"
+        },
+        {
+          "name": "RequestOrigin",
+          "type": "string"
+        },
+        {
+          "name": "UrlRepScoreId",
+          "type": "string"
+        },
+        {
+          "name": "FileRepScore",
+          "type": "string"
+        }
+      ]
+    }
+  }
+}

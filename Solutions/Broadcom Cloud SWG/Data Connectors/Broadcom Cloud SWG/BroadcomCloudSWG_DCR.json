@@ -1,0 +1,152 @@
+{
+  "name": "BroadcomCloudSWG",
+  "apiVersion": "2021-09-01-preview",
+  "type": "Microsoft.Insights/dataCollectionRules",
+  "location": "{{location}}",
+  "properties": {
+    "dataCollectionEndpointId": "{{dataCollectionEndpointId}}",
+    "streamDeclarations": {
+      "Custom-BroadcomCloudSWG": {
+        "columns": [
+          {
+            "name": "actor",
+            "type": "dynamic"
+          },
+          {
+            "name": "api",
+            "type": "dynamic"
+          },
+          {
+            "name": "cloud",
+            "type": "dynamic"
+          },
+          {
+            "name": "connection_info",
+            "type": "dynamic"
+          },
+          {
+            "name": "device",
+            "type": "dynamic"
+          },
+          {
+            "name": "dst_endpoint",
+            "type": "dynamic"
+          },
+          {
+            "name": "metadata",
+            "type": "dynamic"
+          },
+          {
+            "name": "proxy_endpoint",
+            "type": "dynamic"
+          },
+          {
+            "name": "proxy_http_response",
+            "type": "dynamic"
+          },
+          {
+            "name": "src_endpoint",
+            "type": "dynamic"
+          },
+          {
+            "name": "tls",
+            "type": "dynamic"
+          },
+          {
+            "name": "traffic",
+            "type": "dynamic"
+          },
+          {
+            "name": "unmapped",
+            "type": "dynamic"
+          },
+          {
+            "name": "url",
+            "type": "dynamic"
+          },
+          {
+            "name": "activity_id",
+            "type": "string"
+          },
+          {
+            "name": "activity_name",
+            "type": "string"
+          },
+          {
+            "name": "app_name",
+            "type": "string"
+          },
+          {
+            "name": "category_name",
+            "type": "string"
+          },
+          {
+            "name": "category_uid",
+            "type": "string"
+          },
+          {
+            "name": "class_name",
+            "type": "string"
+          },
+          {
+            "name": "class_uid",
+            "type": "string"
+          },
+          {
+            "name": "duration",
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "type": "string"
+          },
+          {
+            "name": "severity_id",
+            "type": "string"
+          },
+          {
+            "name": "status_detail",
+            "type": "string"
+          },
+          {
+            "name": "time",
+            "type": "string"
+          },
+          {
+            "name": "type_name",
+            "type": "string"
+          },
+          {
+            "name": "type_uid",
+            "type": "string"
+          },
+          {
+            "name": "BroadcomSWGAccountName",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "destinations": {
+      "logAnalytics": [
+        {
+          "workspaceResourceId": "{{workspaceResourceId}}",
+          "name": "clv2ws1"
+        }
+      ]
+    },
+    "dataFlows": [
+      {
+        "streams": [
+          "Custom-BroadcomCloudSWG"
+        ],
+        "destinations": [
+          "clv2ws1"
+        ],
+        "outputStream": "Custom-BroadcomCloudSWG_CL",
+        "transformKql": "source | extend TimeGenerated = datetime(1970-01-01T00:00:00Z) + (tolong(['time'])/1000) * 1s, BroadcomSWGAccountName = tostring(BroadcomSWGAccountName), ActivityId = toint(['activity_id']), ActivityName = tostring(['activity_name']), ApiOperation = tostring(['api']['operation']), AppName = tostring(['app_name']), CategoryName = tostring(['category_name']), CategoryUid = toint(['category_uid']), ClassName = tostring(['class_name']), ClassUid = toint(['class_uid']), CloudProvider = tostring(['cloud']['provider']), ConnectionDirectionId = toint(['connection_info']['direction_id']), ConnectionUid = tostring(['connection_info']['uid']), DeviceIp = tostring(['device']['ip']), DeviceName = tostring(['device']['name']), DeviceTypeId = toint(['device']['type_id']), DeviceUid = tostring(['device']['uid']), DeviceOsName = tostring(['unmapped']['device_os_name']), DstIp = tostring(['dst_endpoint']['ip']), DstCountry = tostring(['dst_endpoint']['location']['country']), Duration = toint(['duration']), ProxyHostname = tostring(['proxy_endpoint']['hostname']), ProxyIp = tostring(['proxy_endpoint']['ip']), HttpStatusCode = toint(['proxy_http_response']['code']), HttpContentType = tostring(['proxy_http_response']['content_type']), Severity = tostring(['severity']), SeverityId = toint(['severity_id']), SrcIp = tostring(['src_endpoint']['ip']), SrcCountry = tostring(['src_endpoint']['location']['country']), StatusDetail = tostring(['status_detail']), EventTime = tolong(['time']), TlsCipher = tostring(['tls']['cipher']), TlsVersion = tostring(['tls']['version']), TrafficBytes = tolong(['traffic']['bytes']), TrafficBytesIn = tolong(['traffic']['bytes_in']), TrafficBytesOut = tolong(['traffic']['bytes_out']), TypeName = tostring(['type_name']), TypeUid = toint(['type_uid']), UserDomain = tostring(['actor']['user']['domain']), UserName = tostring(['actor']['user']['name']), UrlCategories = tostring(['url']['categories']), UrlHostname = tostring(['url']['hostname']), UrlPath = tostring(['url']['path']), UrlPort = toint(['url']['port']), UrlScheme = tostring(['url']['scheme']), UrlString = tostring(['url']['url_string']), ActionResult = tostring(['unmapped']['action_result']), ClientPublicIp = tostring(['unmapped']['cs_public_ip']), LocationName = tostring(['unmapped']['location']['name']), MessageCode = tostring(['unmapped']['message_code']), OcsfVersion = tostring(['metadata']['version']), ProtocolVersion = tostring(['unmapped']['protocol_version']), ProxyTlsCertificateSubject = tostring(['unmapped']['proxy_tls']['certificate']['subject']), ProxyTlsCipher = tostring(['unmapped']['proxy_tls']['cipher']), ProxyTlsCipherSize = toint(['unmapped']['proxy_tls']['cipher_size']), ProxyTlsServerCertSignatureErrors = tostring(['unmapped']['proxy_tls']['server_certificate']['signature_errors']), ProxyTlsVersion = tostring(['unmapped']['proxy_tls']['version']), ProxyInternalIp = tostring(['unmapped']['s_ip']), UploadSource = tostring(['unmapped']['source']['facility']), AccessType = tostring(['unmapped']['swg_access_type']), HttpConnectHost = tostring(['unmapped']['swg_http_connect_host']), HttpConnectPort = toint(['unmapped']['swg_http_connect_port']), TenantId = toguid(['unmapped']['swg_tenant_id']), VPopCode = tostring(['unmapped']['swg_vpop_code']), VPopCountry = tostring(['unmapped']['swg_vpop_country']), VPopIp = tostring(['unmapped']['swg_vpop_ip']), Inspected = tostring(['unmapped']['symc_inspected']), Verdict = tostring(['unmapped']['verdict']), RequestOrigin = tostring(['unmapped']['x_request_origin']), UrlRepScoreId = tostring(['unmapped']['url']['rep_score_id']), FileRepScore = tostring(['unmapped']['file']['rep_score']) | project TimeGenerated, BroadcomSWGAccountName, ActivityId, ActivityName, ApiOperation, AppName, CategoryName, CategoryUid, ClassName, ClassUid, CloudProvider, ConnectionDirectionId, ConnectionUid, DeviceIp, DeviceName, DeviceTypeId, DeviceUid, DeviceOsName, DstIp, DstCountry, Duration, ProxyHostname, ProxyIp, HttpStatusCode, HttpContentType, Severity, SeverityId, SrcIp, SrcCountry, StatusDetail, EventTime, TlsCipher, TlsVersion, TrafficBytes, TrafficBytesIn, TrafficBytesOut, TypeName, TypeUid, UserDomain, UserName, UrlCategories, UrlHostname, UrlPath, UrlPort, UrlScheme, UrlString, ActionResult, ClientPublicIp, LocationName, MessageCode, OcsfVersion, ProtocolVersion, ProxyTlsCertificateSubject, ProxyTlsCipher, ProxyTlsCipherSize, ProxyTlsServerCertSignatureErrors, ProxyTlsVersion, ProxyInternalIp, UploadSource, AccessType, HttpConnectHost, HttpConnectPort, TenantId, VPopCode, VPopCountry, VPopIp, Inspected, Verdict, RequestOrigin, UrlRepScoreId, FileRepScore"
+      }
+    ]
+  }
+}
+

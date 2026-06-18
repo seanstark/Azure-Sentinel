@@ -1,0 +1,45 @@
+id: 5b3a1d44-7c2e-4f9a-9c1e-3b8f7a210a04
+name: Broadcom Cloud SWG - High threat-risk URL access allowed
+description: |
+  Identifies transactions to URLs with high Broadcom Cloud SWG severity (SeverityId >= 3) that were ultimately allowed. Allowed access to high-severity destinations may indicate a policy gap.
+severity: High
+status: Available
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+  - CommandAndControl
+  - InitialAccess
+relevantTechniques:
+  - T1071
+  - T1189
+query: |
+  BroadcomCloudSWG_CL
+  | where SeverityId >= 3
+  | where ActionResult =~ "ALLOWED" or Verdict =~ "Allowed"
+  | extend AccountName = tostring(split(UserName, "\\\\")[-1]), AccountDomain = UserDomain
+  | extend Url = strcat(UrlScheme, "://", UrlHostname, UrlPath)
+  | project TimeGenerated, AccountName, AccountDomain, UserName, UserDomain, SrcIp, DeviceName, DstIp, UrlHostname, Url, UrlCategories, SeverityId, Severity, ActionResult, Verdict, AppName
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: AccountName
+      - identifier: UPNSuffix
+        columnName: AccountDomain
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SrcIp
+  - entityType: URL
+    fieldMappings:
+      - identifier: Url
+        columnName: Url
+version: 1.0.0
+kind: Scheduled
+

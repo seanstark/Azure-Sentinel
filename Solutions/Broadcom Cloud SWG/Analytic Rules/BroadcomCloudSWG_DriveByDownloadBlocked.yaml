@@ -1,0 +1,45 @@
+id: 5b3a1d44-7c2e-4f9a-9c1e-3b8f7a210a06
+name: Broadcom Cloud SWG - Drive-by download attack blocked
+description: |
+  Identifies denied transactions to malicious or drive-by download categories in Broadcom Cloud SWG. Note: Drive-by action (DriveByAction) is not available in OCSF 1.6 Network Activity events; detection is based on URL categories.
+severity: High
+status: Available
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+  - InitialAccess
+  - Execution
+relevantTechniques:
+  - T1189
+  - T1203
+query: |
+  BroadcomCloudSWG_CL
+  | where ActionResult =~ "DENIED"
+  | where UrlCategories has_any ("Malware", "Malicious Downloads", "Drive-By Downloads", "Suspect Malware Distribution", "Malicious Sources/Malnets")
+  | extend AccountName = tostring(split(UserName, "\\\\")[-1]), AccountDomain = UserDomain
+  | extend Url = strcat(UrlScheme, "://", UrlHostname, UrlPath)
+  | project TimeGenerated, AccountName, AccountDomain, UserName, UserDomain, SrcIp, DeviceName, DstIp, UrlHostname, Url, ActionResult, Verdict, UrlCategories, SeverityId, UrlScheme, UrlPath
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: AccountName
+      - identifier: UPNSuffix
+        columnName: AccountDomain
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SrcIp
+  - entityType: URL
+    fieldMappings:
+      - identifier: Url
+        columnName: Url
+version: 1.0.0
+kind: Scheduled
+

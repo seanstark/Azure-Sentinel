@@ -1,0 +1,258 @@
+{
+    "name": "BroadcomCloudSWGDefinition",
+    "apiVersion": "2022-09-01-preview",
+    "type": "Microsoft.SecurityInsights/dataConnectorDefinitions",
+    "location": "{{location}}",
+    "kind": "Customizable",
+    "properties": {
+        "connectorUiConfig": {
+            "id": "BroadcomCloudSWGDefinition",
+            "title": "Broadcom Cloud SWG via Blob Storage",
+            "publisher": "Microsoft",
+            "descriptionMarkdown": "The [Broadcom Cloud SWG](https://techdocs.broadcom.com/us/en/symantec-security-software/web-and-network-security/cloud-swg/help.html) solution provides the capability to ingest [Broadcom Cloud SWG logs](https://techdocs.broadcom.com/us/en/symantec-security-software/web-and-network-security/cloud-swg/help/wss-reference/accesslogformats-ref.html) in the Open Cybersecurity Schema Framework (OCSF) 1.6 format into Microsoft Sentinel using the Codeless Connector Framework (CCF) and Azure Blob Storage. Refer to [Broadcom documentation](https://techdocs.broadcom.com/us/en/symantec-security-software/web-and-network-security/cloud-swg/help/wss-reference/accesslogformats-ref.html) for more information.\n\n**Underlying Microsoft Technologies used:**\r\n\n  a. [Codeless Connector Framework](https://learn.microsoft.com/en-us/azure/sentinel/create-codeless-connector)\n\n>**Note:** The connector requires the Open Cybersecurity Schema Framework (OCSF) 1.6 output format for Broadcom Cloud SWG logs\n\n",
+            "graphQueriesTableName": "BroadcomCloudSWG_CL",
+            "graphQueries": [
+                {
+                    "metricName": "Total events received",
+                    "legend": "Broadcom Cloud SWG logs",
+                    "baseQuery": "{{graphQueriesTableName}}"
+                }
+            ],
+            "sampleQueries": [
+                {
+                    "description": "Broadcom Cloud SWG Logs",
+                    "query": "{{graphQueriesTableName}}\n | take 10"
+                }
+            ],
+            "dataTypes": [
+                {
+                    "name": "{{graphQueriesTableName}}",
+                    "lastDataReceivedQuery": "{{graphQueriesTableName}}\n|summarize Time = max(TimeGenerated)\n|where isnotempty(Time)"
+                }
+            ],
+            "connectivityCriteria": [
+                {
+                    "type": "HasDataConnectors"
+                }
+            ],
+            "availability": {
+                "status": 1,
+                "isPreview": false
+            },
+            "permissions": {
+                "resourceProvider": [
+                    {
+                        "provider": "Microsoft.OperationalInsights/workspaces",
+                        "permissionsDisplayText": "Read and Write permissions are required.",
+                        "providerDisplayName": "Workspace",
+                        "scope": "Workspace",
+                        "requiredPermissions": {
+                            "read": true,
+                            "write": true,
+                            "delete": true,
+                            "action": false
+                        }
+                    }
+                ],
+                "customs": [
+                    {
+                        "name": "Storage Account Resource Group permissions",
+                        "description": "The identity running the deployment needs the following Azure roles on the Storage Account resource group: **Owner**, or a combination **Contributor** + **User Access Administrator**"
+                    },
+                    {
+                        "name": "Storage Account permissions",
+                        "description": "The identity running the deployment needs the following Azure roles on the Storage Account: **Storage Blob Data Reader** role and **Storage Queue Data Contributor**"
+                    },
+                    {
+                        "name": "Broadcom Cloud SWG permissions",
+                        "description": "Ensure Storage account key access is enabled on the Azure Storage account, refer to the [Broadcom documentation](https://knowledge.broadcom.com/external/article/262713) for more information."
+                    },
+                    {
+                        "name": "Role assignment propagation",
+                        "description": "Newly granted Azure role assignments (Storage Blob Data Reader, Storage Queue Data Contributor) can take up to 5 minutes to propagate. If the initial connection check fails with `BLB40011` (\"Access to the queue was denied\"), wait ~5 minutes and click **Connect** again."
+                    },
+                    {
+                        "name": "Blob lifecycle management (optional)",
+                        "description": "Set **Blob retention in days** above 0 (default 7) to add or update a lifecycle management rule that deletes blobs in the selected container older than the specified number of days. The rule is merged into the storage account's existing lifecycle policy (filtered to the selected container) without removing other rules. Set the value to 0 to skip. This requires the deployment identity to have **Storage Account Contributor** (or equivalent) on the storage account."
+                    }
+                ]
+            },
+            "instructionSteps": [
+                {
+                    "title": "1. Create a storage account and a blob container",
+                    "description": "Before setting up logpush in Broadcom Cloud SWG, first create a storage account and a blob container in  Azure. Follow the steps in the [documentation](https://learn.microsoft.com/azure/storage/common/storage-account-create?tabs=azure-portal) to create an Azure Storage account."
+                },
+                {
+                    "title": "2. Gather your Storage Account access key",
+                    "description": "Integration with Azure Storage Accounts requires access keys for authentication. Follow the steps in the [documentation](https://knowledge.broadcom.com/external/article/262713) to find the access key for your storage account and make note of it for later use when setting event streaming in Broadcom Cloud SWG."
+                },
+                {
+                    "title": "3. Collecting logs from Broadcom Cloud SWG to your Blob container",
+                    "description": "Follow the steps in the [documentation](https://techdocs.broadcom.com/us/en/symantec-security-software/web-and-network-security/cloud-swg/help/about_reporting_co/event-streaming/event-streaming-data-buckets.html) for collecting logs from Broadcom Cloud SWG to your Blob container. When configuring event streaming, set the output type to Open Cybersecurity Schema Framework (OCSF) 1.6."
+                },
+                {
+                    "title": "4. Connect Broadcom Cloud SWG Logs to Microsoft Sentinel",
+                    "description": "To enable Broadcom Cloud SWG logs for Microsoft Sentinel, click **Add new collector**, fill in the required fields (including granting the Microsoft Sentinel service principal **Storage Blob Data Reader** on the target storage account), and click **Connect**.",
+                    "instructions": [
+                        {
+                            "type": "DataConnectorsGrid",
+                            "parameters": {
+                                "mapping": [
+                                    {
+                                        "columnName": "Connector",
+                                        "columnValue": "name"
+                                    },
+                                    {
+                                        "columnName": "Account Name",
+                                        "columnValue": "properties.addOnAttributes.BroadcomSWGAccountName"
+                                    },
+                                    {
+                                        "columnValue": "properties.request.queueUri",
+                                        "columnName": "Queue URL"
+                                    },
+                                    {
+                                        "columnName": "Stream Name (table)",
+                                        "columnValue": "properties.dcrConfig.streamName"
+                                    },
+                                    {
+                                        "columnName": "DCR Id",
+                                        "columnValue": "properties.dcrConfig.dataCollectionRuleImmutableId"
+                                    },
+                                    {
+                                        "columnValue": "properties.isActive",
+                                        "columnName": "Active"
+                                    }
+                                ],
+                                "menuItems": [
+                                    "DeleteConnector"
+                                ]
+                            }
+                        },
+                        {
+                            "type": "ContextPane",
+                            "parameters": {
+                                "contextPaneType": "DataConnectorsContextPane",
+                                "title": "Add a Broadcom Cloud SWG account",
+                                "subtitle": "Broadcom Cloud SWG (Using Blob Container)",
+                                "label": "Add new collector",
+                                "instructionSteps": [
+                                    {
+                                        "title": "Broadcom Cloud SWG account details",
+                                        "instructions": [
+                                            {
+                                                "type": "ServicePrincipalIDTextBox_test",
+                                                "parameters": {
+                                                    "tenantId": "[subscription().tenantId]",
+                                                    "name": "principalId",
+                                                    "appId": "4f05ce56-95b6-4612-9d98-a45c8cc33f9f"
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "Broadcom Cloud SWG account name",
+                                                    "description": "A short, lowercase identifier for this Broadcom Cloud SWG account (letters, digits and hyphens). Used as a prefix when naming the DCR, DCE, data connector, storage queues, and for the BroadcomSWGAccountName column created for this account.",
+                                                    "type": "text",
+                                                    "name": "BroadcomSWGAccountName",
+                                                    "validations": {
+                                                        "required": true
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "Storage account name",
+                                                    "description": "The name of the Azure Storage account that receives Broadcom Cloud SWG Logpush data.",
+                                                    "type": "text",
+                                                    "name": "StorageAccountName",
+                                                    "validations": {
+                                                        "required": true
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "Blob container name",
+                                                    "description": "The blob container inside the storage account where Broadcom Cloud SWG Logpush writes log files.",
+                                                    "type": "text",
+                                                    "name": "ContainerName",
+                                                    "validations": {
+                                                        "required": true
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "Storage account resource group",
+                                                    "type": "text",
+                                                    "name": "StorageAccountResourceGroupName",
+                                                    "validations": {
+                                                        "required": true
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "Storage account subscription id",
+                                                    "type": "text",
+                                                    "name": "StorageAccountSubscription",
+                                                    "validations": {
+                                                        "required": true
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "The event grid topic name of the blob container's storage account if exist. else keep empty.",
+                                                    "description": "Azure Event Grid allows only one system topic per storage account. If a previous collector already created a system topic for this storage account, paste its name here (e.g. 'sentinel-broadcomcloudswg-<storage-account-name>') so this deployment reuses it and only adds a new event subscription. To find it, open the storage account in the Azure portal and go to 'Events'. Leave this empty only when deploying the first collector against this storage account.",
+                                                    "type": "text",
+                                                    "name": "EGSystemTopicName",
+                                                    "validations": {
+                                                        "required": false
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "Custom table name (optional)",
+                                                    "description": "The custom table this collector writes to. Must end with '_CL'. Leave as the default 'BroadcomCloudSWG_CL' to use the built-in table that the solution's parsers, workbooks, hunting queries and analytics rules query. Enter a different name only to isolate this collector's data in its own table; that custom table is created automatically but is NOT consumed by the solution's content.",
+                                                    "type": "text",
+                                                    "name": "TableName",
+                                                    "defaultValue": "BroadcomCloudSWG_CL",
+                                                    "validations": {
+                                                        "required": false
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "Blob retention in days (optional)",
+                                                    "description": "Adds or updates a lifecycle management rule on the storage account to delete blobs in the container above that are older than this many days. Defaults to 7. Existing lifecycle rules on the storage account are preserved. Set to 0 to skip creating or updating any lifecycle rule.",
+                                                    "type": "text",
+                                                    "name": "BlobDeleteRetentionDays",
+                                                    "defaultValue": "7",
+                                                    "validations": {
+                                                        "required": false
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ],
+            "isConnectivityCriteriasMatchSome": false
+        }
+    },
+    "dependsOn": null
+}

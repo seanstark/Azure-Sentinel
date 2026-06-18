@@ -1,0 +1,473 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+  "handler": "Microsoft.Azure.CreateUIDef",
+  "version": "0.1.2-preview",
+  "parameters": {
+    "config": {
+      "isWizard": false,
+      "basics": {
+        "description": "<img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/Azure_Sentinel.svg\"width=\"75px\"height=\"75px\">\n\n**Note:** Please refer to the following before installing the solution: \n\n• Review the solution [Release Notes](https://github.com/Azure/Azure-Sentinel/tree/master/Solutions/Broadcom%20Cloud%20SWG/ReleaseNotes.md)\n\n • There may be [known issues](https://aka.ms/sentinelsolutionsknownissues) pertaining to this Solution, please refer to them before installing.\n\nThe [Broadcom Cloud SWG](https://techdocs.broadcom.com/us/en/symantec-security-software/web-and-network-security/cloud-swg/help.html) solution provides the capability to ingest [Broadcom Cloud SWG logs](https://techdocs.broadcom.com/us/en/symantec-security-software/web-and-network-security/cloud-swg/help/wss-reference/accesslogformats-ref.html) into Microsoft Sentinel using the Codeless Connector Framework (CCF) and Azure Blob Storage. Refer to [Broadcom documentation](https://techdocs.broadcom.com/us/en/symantec-security-software/web-and-network-security/cloud-swg/help/wss-reference/accesslogformats-ref.html) for more information.\n\n**Underlying Microsoft Technologies used:**\r\n\n  a. [Codeless Connector Framework](https://learn.microsoft.com/en-us/azure/sentinel/create-codeless-connector)\n\n**Data Connectors:** 1, **Workbooks:** 1, **Analytic Rules:** 11, **Hunting Queries:** 10\n\n[Learn more about Microsoft Sentinel](https://aka.ms/azuresentinel) | [Learn more about Solutions](https://aka.ms/azuresentinelsolutionsdoc)",
+        "subscription": {
+          "resourceProviders": [
+            "Microsoft.OperationsManagement/solutions",
+            "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "Microsoft.Insights/workbooks",
+            "Microsoft.Logic/workflows"
+          ]
+        },
+        "location": {
+          "metadata": {
+            "hidden": "Hiding location, we get it from the log analytics workspace"
+          },
+          "visible": false
+        },
+        "resourceGroup": {
+          "allowExisting": true
+        }
+      }
+    },
+    "basics": [
+      {
+        "name": "getLAWorkspace",
+        "type": "Microsoft.Solutions.ArmApiControl",
+        "toolTip": "This filters by workspaces that exist in the Resource Group selected",
+        "condition": "[greater(length(resourceGroup().name),0)]",
+        "request": {
+          "method": "GET",
+          "path": "[concat(subscription().id,'/providers/Microsoft.OperationalInsights/workspaces?api-version=2020-08-01')]"
+        }
+      },
+      {
+        "name": "workspace",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Workspace",
+        "placeholder": "Select a workspace",
+        "toolTip": "This dropdown will list only workspace that exists in the Resource Group selected",
+        "constraints": {
+          "allowedValues": "[map(filter(basics('getLAWorkspace').value, (filter) => contains(toLower(filter.id), toLower(resourceGroup().name))), (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name, '\"}')))]",
+          "required": true
+        },
+        "visible": true
+      }
+    ],
+    "steps": [
+      {
+        "name": "dataconnectors",
+        "label": "Data Connectors",
+        "bladeTitle": "Data Connectors",
+        "elements": [
+          {
+            "name": "dataconnectors1-text",
+            "type": "Microsoft.Common.TextBlock",
+            "options": {
+              "text": "This Solution installs the data connector for Broadcom Cloud SWG via Blob Storage. You can get Broadcom Cloud SWG logs via Blob Storage data in your Microsoft Sentinel workspace. After installing the solution, configure and enable this data connector by following guidance in Manage solution view."
+            }
+          },
+          {
+            "name": "dataconnectors-link1",
+            "type": "Microsoft.Common.TextBlock",
+            "options": {
+              "link": {
+                "label": "Learn more about connecting data sources",
+                "uri": "https://docs.microsoft.com/azure/sentinel/connect-data-sources"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "workbooks",
+        "label": "Workbooks",
+        "subLabel": {
+          "preValidation": "Configure the workbooks",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Workbooks",
+        "elements": [
+          {
+            "name": "workbooks-text",
+            "type": "Microsoft.Common.TextBlock",
+            "options": {
+              "text": "This solution installs workbook(s) to help you gain insights into the telemetry collected in Microsoft Sentinel. After installing the solution, start using the workbook in Manage solution view."
+            }
+          },
+          {
+            "name": "workbooks-link",
+            "type": "Microsoft.Common.TextBlock",
+            "options": {
+              "link": {
+                "label": "Learn more",
+                "uri": "https://docs.microsoft.com/azure/sentinel/tutorial-monitor-your-data"
+              }
+            }
+          },
+          {
+            "name": "workbook1",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG",
+            "elements": [
+              {
+                "name": "workbook1-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "This workbook provides visibility into Broadcom Cloud Secure Web Gateway (Cloud SWG) traffic ingested into Microsoft Sentinel, including web traffic, threat protection events, data loss prevention activity, and DNS / Web Isolation telemetry."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "analytics",
+        "label": "Analytics",
+        "subLabel": {
+          "preValidation": "Configure the analytics",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Analytics",
+        "elements": [
+          {
+            "name": "analytics-text",
+            "type": "Microsoft.Common.TextBlock",
+            "options": {
+              "text": "This solution installs the following analytic rule templates. After installing the solution, create and enable analytic rules in Manage solution view."
+            }
+          },
+          {
+            "name": "analytics-link",
+            "type": "Microsoft.Common.TextBlock",
+            "options": {
+              "link": {
+                "label": "Learn more",
+                "uri": "https://docs.microsoft.com/azure/sentinel/tutorial-detect-threats-custom?WT.mc_id=Portal-Microsoft_Azure_CreateUIDef"
+              }
+            }
+          },
+          {
+            "name": "analytic1",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Malware detonation verdict detected",
+            "elements": [
+              {
+                "name": "analytic1-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Identifies web transactions where Broadcom Cloud SWG Malware Analysis (sandbox) detonation returned a MALWARE verdict. A confirmed malware verdict indicates malicious content was delivered to or requested by a client and warrants immediate investigation."
+                }
+              }
+            ]
+          },
+          {
+            "name": "analytic2",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Virus signature detected",
+            "elements": [
+              {
+                "name": "analytic2-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Identifies web transactions where Broadcom Cloud SWG anti-virus scanning detected a known virus signature (x-virus-id). These detections indicate that malicious files were observed traversing the proxy and should be triaged for containment."
+                }
+              }
+            ]
+          },
+          {
+            "name": "analytic3",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - DLP policy violation blocked",
+            "elements": [
+              {
+                "name": "analytic3-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Identifies transactions where Broadcom Cloud SWG Data Loss Prevention (DLP) took a Block action against a policy violation. Repeated DLP blocks for a user can indicate attempted data exfiltration or policy circumvention."
+                }
+              }
+            ]
+          },
+          {
+            "name": "analytic4",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - High threat-risk URL access allowed",
+            "elements": [
+              {
+                "name": "analytic4-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Identifies transactions to URLs with a high Broadcom Cloud SWG Threat Risk Level (8-10) that were ultimately allowed (not denied). Allowed access to high-risk destinations may indicate a policy gap or successful evasion and should be reviewed."
+                }
+              }
+            ]
+          },
+          {
+            "name": "analytic5",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Phishing attack detected",
+            "elements": [
+              {
+                "name": "analytic5-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Identifies transactions where Broadcom Cloud SWG (Web Isolation) detected a phishing attack through a phishing policy action or phishing type classification. Phishing detections often precede credential theft."
+                }
+              }
+            ]
+          },
+          {
+            "name": "analytic6",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Drive-by download attack blocked",
+            "elements": [
+              {
+                "name": "analytic6-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Identifies transactions where Broadcom Cloud SWG (Web Isolation) applied a Block action against a potential drive-by download attack. Drive-by downloads are a common initial access technique used to deliver malware without user interaction."
+                }
+              }
+            ]
+          },
+          {
+            "name": "analytic7",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Access to malicious or suspicious category",
+            "elements": [
+              {
+                "name": "analytic7-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Identifies web transactions categorized by Broadcom Cloud SWG as Malicious Sources/Malnets or Suspicious. Access to these categories is a strong indicator of malware command-and-control or compromised destinations."
+                }
+              }
+            ]
+          },
+          {
+            "name": "analytic8",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Repeated authentication failures by user",
+            "elements": [
+              {
+                "name": "analytic8-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Detects users generating a high number of authentication failure exceptions (authentication_failed) through Broadcom Cloud SWG within the lookback window. A burst of authentication failures may indicate brute-force or credential-stuffing activity."
+                }
+              }
+            ]
+          },
+          {
+            "name": "analytic9",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Large data upload to web application",
+            "elements": [
+              {
+                "name": "analytic9-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Detects users uploading an unusually large total volume of data to web destinations through Broadcom Cloud SWG within the lookback window. Large outbound uploads can indicate data exfiltration to cloud storage or unsanctioned applications."
+                }
+              }
+            ]
+          },
+          {
+            "name": "analytic10",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Invalid or expired server certificate",
+            "elements": [
+              {
+                "name": "analytic10-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Identifies transactions where Broadcom Cloud SWG validated the upstream server TLS/SSL certificate as EXPIRED or having an untrusted issuer. Connections to servers with invalid certificates can indicate man-in-the-middle attempts or risky destinations."
+                }
+              }
+            ]
+          },
+          {
+            "name": "analytic11",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - High volume of denied requests from single client",
+            "elements": [
+              {
+                "name": "analytic11-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Detects a single client IP generating a high number of denied transactions through Broadcom Cloud SWG within the lookback window. A spike in denied requests may indicate malware beaconing to blocked destinations, policy probing, or a misconfigured host."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "huntingqueries",
+        "label": "Hunting Queries",
+        "bladeTitle": "Hunting Queries",
+        "elements": [
+          {
+            "name": "huntingqueries-text",
+            "type": "Microsoft.Common.TextBlock",
+            "options": {
+              "text": "This solution installs the following hunting queries. After installing the solution, run these hunting queries to hunt for threats in Manage solution view. "
+            }
+          },
+          {
+            "name": "huntingqueries-link",
+            "type": "Microsoft.Common.TextBlock",
+            "options": {
+              "link": {
+                "label": "Learn more",
+                "uri": "https://docs.microsoft.com/azure/sentinel/hunting"
+              }
+            }
+          },
+          {
+            "name": "huntingquery1",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Rare user agents",
+            "elements": [
+              {
+                "name": "huntingquery1-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Surfaces rarely seen User-Agent strings observed in Broadcom Cloud SWG traffic. Unusual or rare user agents can indicate scripted tools, malware, or non-standard clients used for command-and-control or data exfiltration."
+                }
+              }
+            ]
+          },
+          {
+            "name": "huntingquery2",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Top data uploaders",
+            "elements": [
+              {
+                "name": "huntingquery2-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Ranks users by total outbound bytes (upload + client bytes) through Broadcom Cloud SWG. Use this hunt to identify potential data exfiltration candidates and unsanctioned data movement to external web applications."
+                }
+              }
+            ]
+          },
+          {
+            "name": "huntingquery3",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - High risk DNS requests",
+            "elements": [
+              {
+                "name": "huntingquery3-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Surfaces DNS requests resolved through Broadcom Cloud SWG where the queried domain carries a high Threat Risk Level (8-10). High-risk domain lookups can be an early indicator of malware command-and-control or compromised hosts."
+                }
+              }
+            ]
+          },
+          {
+            "name": "huntingquery4",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Uninspected HTTPS traffic",
+            "elements": [
+              {
+                "name": "huntingquery4-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Surfaces HTTPS transactions that Broadcom Cloud SWG did not TLS-intercept (Inspected = NOT_INSPECTED). Uninspected encrypted traffic represents a visibility gap that adversaries can use to tunnel command-and-control or exfiltrate data."
+                }
+              }
+            ]
+          },
+          {
+            "name": "huntingquery5",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Suspicious sandbox verdict downloads",
+            "elements": [
+              {
+                "name": "huntingquery5-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Surfaces file downloads through Broadcom Cloud SWG where Malware Analysis returned a SUSPICIOUS sandbox verdict or the content was detonated. These borderline detections are valuable hunting leads for emerging or evasive malware."
+                }
+              }
+            ]
+          },
+          {
+            "name": "huntingquery6",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Anomalous destination country per user",
+            "elements": [
+              {
+                "name": "huntingquery6-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Identifies users connecting to destination countries that are rare for them relative to their own history through Broadcom Cloud SWG. Geographic anomalies can indicate compromised credentials, command-and-control, or unusual data movement."
+                }
+              }
+            ]
+          },
+          {
+            "name": "huntingquery7",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Rarely used web applications",
+            "elements": [
+              {
+                "name": "huntingquery7-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Surfaces web applications (Shadow IT candidates) that are used by very few users in Broadcom Cloud SWG traffic. Rare or newly seen applications are useful leads for discovering unsanctioned services and potential exfiltration channels."
+                }
+              }
+            ]
+          },
+          {
+            "name": "huntingquery8",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Policy exceptions and blocked transactions",
+            "elements": [
+              {
+                "name": "huntingquery8-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Surfaces transactions that triggered a Broadcom Cloud SWG policy exception (x-exception-id) such as authentication_failed, policy_denied, or dns_unresolved_hostname. Reviewing exception patterns helps find evasion attempts, misconfigurations, and blocked threats."
+                }
+              }
+            ]
+          },
+          {
+            "name": "huntingquery9",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Weak TLS or cipher usage",
+            "elements": [
+              {
+                "name": "huntingquery9-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Surfaces transactions negotiated with outdated TLS protocol versions or weak cipher strength on either the client or server connection through Broadcom Cloud SWG. Weak TLS usage increases the risk of interception and is often associated with legacy or malicious tooling."
+                }
+              }
+            ]
+          },
+          {
+            "name": "huntingquery10",
+            "type": "Microsoft.Common.Section",
+            "label": "Broadcom Cloud SWG - Beaconing to single destination",
+            "elements": [
+              {
+                "name": "huntingquery10-text",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                  "text": "Identifies potential command-and-control beaconing by surfacing client/destination pairs with a high, regular volume of transactions to a single host through Broadcom Cloud SWG. Consistent low-variance intervals to one destination are characteristic of automated beacons."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "workspace-location": "[first(map(filter(basics('getLAWorkspace').value, (filter) => and(contains(toLower(filter.id), toLower(resourceGroup().name)),equals(filter.name,basics('workspace')))), (item) => item.location))]",
+      "location": "[location()]",
+      "workspace": "[basics('workspace')]"
+    }
+  }
+}

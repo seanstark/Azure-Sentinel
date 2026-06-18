@@ -1,0 +1,25 @@
+id: 7c4b2e55-8d3f-4a1b-9d2f-4c9a8b321b08
+name: Broadcom Cloud SWG - Policy exceptions and blocked transactions
+description: |
+  'Surfaces transactions that triggered a Broadcom Cloud SWG policy exception (x-exception-id) such as authentication_failed, policy_denied, or dns_unresolved_hostname. Reviewing exception patterns helps find evasion attempts, misconfigurations, and blocked threats.'
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+tactics:
+  - DefenseEvasion
+relevantTechniques:
+  - T1562
+query: |
+  BroadcomCloudSWG_CL
+  | where ActionResult =~ "DENIED" and isnotempty(StatusDetail) and StatusDetail != "-"
+  | summarize TransactionCount = count(), DistinctUsers = dcount(UserName), Users = make_set(UserName, 25), ClientIPs = make_set(SrcIp, 25), Destinations = make_set(UrlHostname, 25), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by StatusDetail, MessageCode
+  | order by TransactionCount desc
+  
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: ExceptionID
+version: 1.0.0
+

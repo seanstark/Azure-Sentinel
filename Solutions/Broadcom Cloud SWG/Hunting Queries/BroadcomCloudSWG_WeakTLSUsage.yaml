@@ -1,0 +1,25 @@
+id: 7c4b2e55-8d3f-4a1b-9d2f-4c9a8b321b09
+name: Broadcom Cloud SWG - Weak TLS or cipher usage
+description: |
+  'Surfaces transactions negotiated with outdated TLS protocol versions or weak cipher strength on either the client or server connection through Broadcom Cloud SWG. Weak TLS usage increases the risk of interception and is often associated with legacy or malicious tooling.'
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+tactics:
+  - CommandAndControl
+relevantTechniques:
+  - T1573
+query: |
+  BroadcomCloudSWG_CL
+  | where TlsVersion in~ ("TLSv1.0", "TLSv1.1", "SSLv3") or ProxyTlsVersion in~ ("TLSv1.0", "TLSv1.1", "SSLv3")
+  | summarize TransactionCount = count(), Users = make_set(UserName, 25), ClientIPs = make_set(SrcIp, 25), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by UrlHostname, TlsVersion, ProxyTlsVersion, TlsCipher, ProxyTlsCipher
+  | order by TransactionCount desc
+  
+entityMappings:
+  - entityType: UrlString
+    fieldMappings:
+      - identifier: Url
+        columnName: UrlHostname
+version: 1.0.0
+

@@ -1,0 +1,41 @@
+id: 5b3a1d44-7c2e-4f9a-9c1e-3b8f7a210a09
+name: Broadcom Cloud SWG - Large data upload to web application
+description: |
+  Identifies users who have transferred large volumes of outbound data through Broadcom Cloud SWG. Large uploads can indicate data exfiltration.
+severity: Medium
+status: Available
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+  - Exfiltration
+relevantTechniques:
+  - T1567
+  - T1048
+query: |
+  let uploadThresholdBytes = 50000000; // 50 MB aggregate per user
+  BroadcomCloudSWG_CL
+  | summarize TotalUploadBytes = sum(TrafficBytesOut), TransactionCount = count(), DistinctApps = dcount(AppName), Apps = make_set(AppName, 25), Destinations = make_set(UrlHostname, 25), StartTime = min(TimeGenerated), EndTime = max(TimeGenerated) by UserName, UserDomain, SrcIp
+  | where TotalUploadBytes >= uploadThresholdBytes
+  | extend AccountName = tostring(split(UserName, "\\\\")[-1]), AccountDomain = UserDomain
+  | extend TotalUploadMB = round(TotalUploadBytes / 1024.0 / 1024.0, 2)
+  | order by TotalUploadBytes desc
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: AccountName
+      - identifier: UPNSuffix
+        columnName: AccountDomain
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SrcIp
+version: 1.0.0
+kind: Scheduled
+

@@ -1,0 +1,27 @@
+id: 7c4b2e55-8d3f-4a1b-9d2f-4c9a8b321b07
+name: Broadcom Cloud SWG - Rarely used web applications
+description: |
+  'Surfaces web applications (Shadow IT candidates) that are used by very few users in Broadcom Cloud SWG traffic. Rare or newly seen applications are useful leads for discovering unsanctioned services and potential exfiltration channels.'
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+tactics:
+  - Exfiltration
+  - CommandAndControl
+relevantTechniques:
+  - T1567
+query: |
+  BroadcomCloudSWG_CL
+  | where isnotempty(AppName) and AppName != "-"
+  | summarize TransactionCount = count(), DistinctUsers = dcount(UserName), Users = make_set(UserName, 25), UploadBytes = sum(TrafficBytesOut), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by AppName, UrlCategories
+  | where DistinctUsers <= 3
+  | order by DistinctUsers asc, TransactionCount desc
+  
+entityMappings:
+  - entityType: CloudApplication
+    fieldMappings:
+      - identifier: Name
+        columnName: AppName
+version: 1.0.0
+

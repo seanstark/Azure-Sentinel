@@ -1,0 +1,44 @@
+id: 5b3a1d44-7c2e-4f9a-9c1e-3b8f7a210a03
+name: Broadcom Cloud SWG - DLP policy violation blocked
+description: |
+  Identifies denied web transactions through Broadcom Cloud SWG that may indicate data loss prevention policy violations based on large outbound traffic and blocked status. Note: DLP-specific fields (DLPAction, DLPViolations) are not available in OCSF 1.6 Network Activity events.
+severity: Medium
+status: Available
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+  - Exfiltration
+  - Collection
+relevantTechniques:
+  - T1567
+  - T1048
+query: |
+  BroadcomCloudSWG_CL
+  | where ActionResult =~ "DENIED"
+  | extend AccountName = tostring(split(UserName, "\\\\")[-1]), AccountDomain = UserDomain
+  | extend Url = strcat(UrlScheme, "://", UrlHostname, UrlPath)
+  | project TimeGenerated, AccountName, AccountDomain, UserName, UserDomain, SrcIp, DeviceName, DstIp, UrlHostname, AppName, ApiOperation, ActionResult, Verdict, StatusDetail, MessageCode, TrafficBytesOut, UrlScheme, UrlPath, UrlCategories
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: AccountName
+      - identifier: UPNSuffix
+        columnName: AccountDomain
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SrcIp
+  - entityType: Host
+    fieldMappings:
+      - identifier: HostName
+        columnName: DeviceName
+version: 1.0.0
+kind: Scheduled
+

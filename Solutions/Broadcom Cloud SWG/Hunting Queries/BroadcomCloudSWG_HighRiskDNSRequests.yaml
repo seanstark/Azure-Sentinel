@@ -1,0 +1,27 @@
+id: 7c4b2e55-8d3f-4a1b-9d2f-4c9a8b321b03
+name: Broadcom Cloud SWG - High risk DNS requests
+description: |
+  'Surfaces DNS requests resolved through Broadcom Cloud SWG where the queried domain carries a high Threat Risk Level (8-10). High-risk domain lookups can be an early indicator of malware command-and-control or compromised hosts.'
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+tactics:
+  - CommandAndControl
+relevantTechniques:
+  - T1071
+  - T1568
+query: |
+  BroadcomCloudSWG_CL
+  | where SeverityId >= 3
+  | where isnotempty(UrlHostname) and UrlHostname != "-"
+  | summarize RequestCount = count(), Users = make_set(UserName, 25), ClientIPs = make_set(SrcIp, 25), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by UrlHostname, UrlCategories, SeverityId, Severity, StatusDetail
+  | order by RequestCount desc
+  
+entityMappings:
+  - entityType: DNS
+    fieldMappings:
+      - identifier: DomainName
+        columnName: UrlHostname
+version: 1.0.0
+

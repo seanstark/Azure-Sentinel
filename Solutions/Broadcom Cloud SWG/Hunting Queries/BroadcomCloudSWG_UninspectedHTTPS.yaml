@@ -1,0 +1,28 @@
+id: 7c4b2e55-8d3f-4a1b-9d2f-4c9a8b321b04
+name: Broadcom Cloud SWG - Uninspected HTTPS traffic
+description: |
+  'Surfaces HTTPS transactions that Broadcom Cloud SWG did not TLS-intercept (Inspected = NOT_INSPECTED). Uninspected encrypted traffic represents a visibility gap that adversaries can use to tunnel command-and-control or exfiltrate data.'
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+tactics:
+  - CommandAndControl
+  - DefenseEvasion
+relevantTechniques:
+  - T1071
+  - T1573
+query: |
+  BroadcomCloudSWG_CL
+  | where Inspected =~ "NOT_INSPECTED"
+  | where UrlScheme in~ ("https", "ssl", "tcp")
+  | summarize TransactionCount = count(), TotalBytes = sum(TrafficBytesIn + TrafficBytesOut), Users = make_set(UserName, 25), ClientIPs = make_set(SrcIp, 25), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by UrlHostname, UrlCategories, DstCountry
+  | order by TransactionCount desc
+  
+entityMappings:
+  - entityType: UrlString
+    fieldMappings:
+      - identifier: Url
+        columnName: UrlHostname
+version: 1.0.0
+

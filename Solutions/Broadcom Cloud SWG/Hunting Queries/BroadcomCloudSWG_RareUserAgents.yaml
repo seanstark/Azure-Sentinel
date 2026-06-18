@@ -1,0 +1,28 @@
+id: 7c4b2e55-8d3f-4a1b-9d2f-4c9a8b321b01
+name: Broadcom Cloud SWG - Rare user agents
+description: |
+  'Surfaces rarely seen User-Agent strings observed in Broadcom Cloud SWG traffic. Unusual or rare user agents can indicate scripted tools, malware, or non-standard clients used for command-and-control or data exfiltration.'
+requiredDataConnectors:
+  - connectorId: BroadcomCloudSWGDefinition
+    dataTypes:
+      - BroadcomCloudSWG_CL
+tactics:
+  - CommandAndControl
+relevantTechniques:
+  - T1071
+query: |
+  let lookback = 14d;
+  BroadcomCloudSWG_CL
+  | where TimeGenerated > ago(lookback)
+  | where isnotempty(ApiOperation) and ApiOperation != "-" and ApiOperation != "unknown"
+  | summarize RequestCount = count(), DistinctUsers = dcount(UserName), Users = make_set(UserName, 25), DistinctClientIPs = dcount(SrcIp), Destinations = make_set(UrlHostname, 25), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by ApiOperation
+  | where RequestCount < 10
+  | order by RequestCount asc
+  
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: UserAgent
+version: 1.0.0
+
